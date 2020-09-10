@@ -1,0 +1,134 @@
+import os
+import sys
+import yaml
+import time
+import subprocess
+import collections
+
+import apex
+import torch
+import numpy as np
+from loguru import logger
+import pytorch_tools as pt
+import pytorch_tools.fit_wrapper.callbacks as pt_clb
+from pytorch_tools.optim import optimizer_from_name
+
+from src.arg_parser import parse_args
+from src.datasets import get_dataloaders
+from src.losses import AngularPenaltySMLoss
+# from src.callbacks import ...
+
+
+def main():
+    # Get config for this run
+    hparams = parse_args()
+
+    # Setup logger
+    config = {
+        "handlers": [
+            {"sink": sys.stdout, "format": "{time:[MM-DD HH:mm]} - {message}"},
+            {"sink": f"{hparams.outdir}/logs.txt", "format": "{time:[MM-DD HH:mm]} - {message}"},
+        ],
+    }
+    logger.configure(**config)
+    logger.info(f"Parameters used for training: {hparams}")
+
+    # Fix seeds for reprodusability
+    pt.utils.misc.set_random_seed(hparams.seed)
+
+    ## Save config
+    os.makedirs(hparams.outdir, exist_ok=True)
+    yaml.dump(vars(hparams), open(hparams.outdir + "/config.yaml", "w"))
+
+    logger.info(f"Start training")
+
+    # Get model and optimizer
+    model = Model(arch=hparams.arch, model_params=hparams.model_params, embedding_size=hparams.embedding_size).cuda()
+
+    # Get optimizer
+    optim_params = pt.utils.misc.filter_bn_from_wd(model)
+    optimizer = optimizer_from_name(hparams.optim)(optim_params, lr=0, weight_decay=hparams.weight_decay)
+
+    num_params = pt.utils.misc.count_parameters(model)[0]
+    logger.info(f"Model size: {num_params / 1e6:.02f}M")
+
+    # Get loss
+    loss = AngularPenaltySMLoss(loss_type=hparams.criterion, **hparams.criterion_params).cuda()
+    logger.info(f"Loss for this run is: {hparams.criterion}")
+
+    # Scheduler is an advanced way of planning experiment
+    sheduler = pt.fit_wrapper.callbacks.PhasesScheduler(hparams.phases)
+
+    # Save logs
+    TB_callback = pt_clb.TensorBoard(hparams.outdir, log_every=20)
+
+    # Init runner
+    runner = pt.fit_wrapper.Runner(
+        model,
+        optimizer,
+        criterion=loss,
+        callbacks=[
+            pt_clb.BatchMetrics([pt.metrics.Accuracy(topk=1)]),
+            pt_clb.LoaderMetrics(metrics=[QueryAP(topk=10), QueryAccuracy(topk=1)]),
+            pt_clb.Timer(),
+            pt_clb.ConsoleLogger(),
+            pt_clb.FileLogger(),
+            TB_callback,
+            pt_clb.CheckpointSaver(hparams.outdir, save_name=f"model.chpn"),
+            sheduler,
+            # EMA must go after other checkpoints
+            # pt_clb.ModelEma(model, hparams.ema_decay) if hparams.ema_decay else NoClbk(),
+        ],
+        use_fp16=True,  # use mixed precision by default.  # hparams.opt_level != "O0",
+    )
+    
+    # Get dataloaders
+    train_loader, val_loader = get_dataloaders(
+        root=hparams.root,
+        augmentation=hparams.augmentation,
+        size=hparams.size,
+        val_size=hparams.val_size,
+        batch_size=hparams.batch_size,
+        workers=hparams.workers,
+    )
+
+    # Train
+    for i, phase in enumerate(sheduler.phases):
+        start_epoch, end_epoch = phase["ep"]
+        logger.info(f"Start phase #{i + 1} from epoch {start_epoch} to epoch {end_epoch}: {phase}")
+
+        runner.fit(
+            train_loader,
+            val_loader=val_loader,
+            start_epoch=start_epoch
+            epochs=end_epoch - start_epoch,
+            steps_per_epoch=5 if hparams.debug else None,
+            val_steps=5 if hparams.debug else None,
+        )
+
+
+        logger.info(f"Loading best model from previous phase")
+        checkpoint = torch.load(os.path.join(hparams.outdir, f"model.chpn"))
+        model.load_state_dict(checkpoint["state_dict"])
+        
+    # Save params used for training and final metrics into separate TensorBoard file
+    # metric_dict = {
+    #     "hparam/accuracy": np.mean(fold_metrics["accuracy"]),
+    #     "hparam/roc_auc": np.mean(fold_metrics["roc_auc"]),
+    #     "hparam/average_precision": float(np.mean(fold_metrics["average_precision"])),
+    # }
+
+    # hparams.config_file = str(hparams.config_file)
+    # hparams.phases = str(hparams.phases)
+    # hparams.folds = str(hparams.folds)
+    # hparams.datasets = str(hparams.datasets)
+    # hparams.model_params = str(hparams.model_params)
+
+    # with SummaryWriter(hparams.outdir) as writer:
+    #     writer.add_hparams(hparam_dict=vars(hparams), metric_dict=metric_dict)
+
+
+if __name__ == "__main__":
+    start_time = time.time()
+    main()
+    logger.info(f"Finished Training. Took: {(time.time() - start_time) / 60:.02f}m")
