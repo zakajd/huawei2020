@@ -4,23 +4,18 @@
 import os
 import cv2
 import sys
-import json
 import time
 import shutil
-import collections
 import pathlib
 import functools
 import multiprocessing
 import configargparse as argparse
 
-
-import numpy as np
-import pandas as pd
 from tqdm import tqdm
 from loguru import logger
-from sklearn.model_selection import GroupKFold
 
 NUM_THREADS = 10
+
 
 def resize_one_image(filepath_outputpath, size):
     """
@@ -40,7 +35,7 @@ def resize_one_image(filepath_outputpath, size):
     smaller_side = min(h, w)
     ratio = size / smaller_side
     resized = cv2.resize(image, (round(w * ratio), round(h * ratio)), interpolation=cv2.INTER_CUBIC)
-    
+
     cv2.imwrite(output_path, resized)
 
 
@@ -129,7 +124,7 @@ if __name__ == "__main__":
     add_arg("--size", type=int, default=512, help="Size of min side after resize")
 
     # Setup logger
-    config = {"handlers": [{"sink": sys.stdout, "format": "{time:[HH:mm]}:{message}"},]}
+    config = {"handlers": [{"sink": sys.stdout, "format": "{time:[HH:mm]}:{message}"}]}
     logger.configure(**config)
 
     hparams = parser.parse_args()

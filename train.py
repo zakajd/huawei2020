@@ -2,12 +2,8 @@ import os
 import sys
 import yaml
 import time
-import subprocess
-import collections
 
-import apex
 import torch
-import numpy as np
 from loguru import logger
 import pytorch_tools as pt
 import pytorch_tools.fit_wrapper.callbacks as pt_clb
@@ -16,7 +12,9 @@ from pytorch_tools.optim import optimizer_from_name
 from src.arg_parser import parse_args
 from src.datasets import get_dataloaders
 from src.losses import AngularPenaltySMLoss
-# from src.callbacks import ...
+from src.models import Model
+from src.callbacks import RocAucMeter, APScoreMeter
+# ContestMetricsCallback
 
 
 def main():
@@ -36,7 +34,7 @@ def main():
     # Fix seeds for reprodusability
     pt.utils.misc.set_random_seed(hparams.seed)
 
-    ## Save config
+    # Save config
     os.makedirs(hparams.outdir, exist_ok=True)
     yaml.dump(vars(hparams), open(hparams.outdir + "/config.yaml", "w"))
 
@@ -69,7 +67,8 @@ def main():
         criterion=loss,
         callbacks=[
             pt_clb.BatchMetrics([pt.metrics.Accuracy(topk=1)]),
-            pt_clb.LoaderMetrics(metrics=[QueryAP(topk=10), QueryAccuracy(topk=1)]),
+            # pt_clb.LoaderMetrics(metrics=[RocAucMeter(), APScoreMeter()]),
+            # ContestMetricsCallback(),
             pt_clb.Timer(),
             pt_clb.ConsoleLogger(),
             pt_clb.FileLogger(),
@@ -81,7 +80,7 @@ def main():
         ],
         use_fp16=True,  # use mixed precision by default.  # hparams.opt_level != "O0",
     )
-    
+
     # Get dataloaders
     train_loader, val_loader = get_dataloaders(
         root=hparams.root,
@@ -100,17 +99,16 @@ def main():
         runner.fit(
             train_loader,
             val_loader=val_loader,
-            start_epoch=start_epoch
+            start_epoch=start_epoch,
             epochs=end_epoch - start_epoch,
             steps_per_epoch=5 if hparams.debug else None,
             val_steps=5 if hparams.debug else None,
         )
 
-
         logger.info(f"Loading best model from previous phase")
         checkpoint = torch.load(os.path.join(hparams.outdir, f"model.chpn"))
         model.load_state_dict(checkpoint["state_dict"])
-        
+
     # Save params used for training and final metrics into separate TensorBoard file
     # metric_dict = {
     #     "hparam/accuracy": np.mean(fold_metrics["accuracy"]),

@@ -1,8 +1,3 @@
-import torch
-import pytorch_tools as pt
-import functools
-
-
 class ToCudaLoader:
     def __init__(self, loader):
         self.loader = loader

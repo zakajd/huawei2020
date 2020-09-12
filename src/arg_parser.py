@@ -19,7 +19,7 @@ def get_parser():
     add_arg("--debug", dest="debug", default=False, action="store_true", help="Make short epochs")
     add_arg("--resume", default="", type=str, help="Path to checkpoint to start from")
 
-    ## DATALOADER
+    # DATALOADER
     add_arg("--batch_size", type=int, help="Batch size")
     add_arg("--workers", type=int, help="№ of data loading workers ")
     add_arg("--augmentation", default="light", type=str, help="How hard augs are")
@@ -43,7 +43,7 @@ def get_parser():
         help="Specify epoch order of data resize and learning rate schedule",
     )
 
-    ## Criterion
+    # Criterion
     add_arg("--criterion", type=str, help="Criterion to use.")
     add_arg("--criterion_params", type=eval, default={}, help="Params to pass to criterion")
 

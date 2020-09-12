@@ -1,8 +1,5 @@
-import cv2
-import torch
 import albumentations as albu
 import albumentations.pytorch as albu_pt
-
 
 # Default ImageNet mean and std
 # MEAN = (0.485, 0.456, 0.406)
@@ -20,22 +17,21 @@ def get_aug(aug_type="val", size=512):
         size (int): final size of the crop
     """
 
-    NORM_TO_TENSOR = albu.Compose([albu.Normalize(mean=MEAN, std=STD), albu_pt.ToTensorV2(),])
+    NORM_TO_TENSOR = albu.Compose([albu.Normalize(mean=MEAN, std=STD), albu_pt.ToTensorV2()])
 
-    CROP_AUG = albu.Compose([albu.PadIfNeeded(size, size), albu.CenterCrop(size, size),])
+    CROP_AUG = albu.Compose([albu.RandomCrop(size, size)])
 
-    VAL_AUG = albu.Compose([albu.PadIfNeeded(size, size), albu.CenterCrop(size, size), NORM_TO_TENSOR])
+    VAL_AUG = albu.Compose([albu.CenterCrop(size, size), NORM_TO_TENSOR])
 
     LIGHT_AUG = albu.Compose([CROP_AUG, albu.Flip(), NORM_TO_TENSOR])
 
     # aug from good performing public kernel
     HARD_AUG = albu.Compose(
         [
-            albu.RandomSizedCrop(min_max_height=(400, 400), height=512, width=512, p=0.5),
+            albu.RandomResizedCrop(size, size, scale=(0.6, 1.0), ratio=(0.8, 1.2), p=1.0),
             albu.RandomRotate90(p=0.5),
             albu.HorizontalFlip(p=0.5),
             albu.VerticalFlip(p=0.5),
-            albu.Resize(height=size, width=size, p=1),
             albu.Cutout(num_holes=8, max_h_size=64, max_w_size=64, fill_value=0, p=0.5),
             NORM_TO_TENSOR,
         ],

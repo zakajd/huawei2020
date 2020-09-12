@@ -1,15 +1,14 @@
 import os
 import cv2
-import copy
-import collections
 
 import torch
-import numpy as np
 import albumentations as albu
+from loguru import logger
 import albumentations.pytorch as albu_pt
 
 from src.augmentations import get_aug
 from src.utils import ToCudaLoader
+
 
 def get_dataloaders(
     root="data/raw",
@@ -35,7 +34,7 @@ def get_dataloaders(
     train_aug = get_aug(augmentation, size=size)
 
     # Get datasets
-    train_dataset = ClassificationDataset(root=root, transform=train_aug, train=True)
+    train_dataset = ClassificationDataset(root=root, transform=train_aug, train=True, size=size)
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
@@ -56,8 +55,9 @@ def get_dataloaders(
         workers=workers,
     )
 
-    logger.info(f"Using fold: {fold}. Train size: {len(train_dataset)}")
+    logger.info(f"Train size: {len(train_dataset)}")
     return train_loader, val_loader
+
 
 def get_val_dataloader(
     root="data/raw", augmentation="test", batch_size=8, size=512, workers=6,
@@ -67,7 +67,7 @@ def get_val_dataloader(
     """
     aug = get_aug(augmentation, size=size)
 
-    val_dataset = ClassificationDataset(root=root, transform=train_aug, train=False)
+    val_dataset = ClassificationDataset(root=root, transform=aug, train=False, size=size)
 
     # TODO: Add BalancedBatchSampler from Catalyst?
     val_loader = torch.utils.data.DataLoader(
@@ -80,7 +80,7 @@ def get_val_dataloader(
 
     val_loader = ToCudaLoader(val_loader)
     logger.info(f"Val size: {len(val_dataset)}")
-    return val_loader, val_dataset.classes
+    return val_loader, val_dataset.targets
 
 
 class ClassificationDataset(torch.utils.data.Dataset):
@@ -89,7 +89,7 @@ class ClassificationDataset(torch.utils.data.Dataset):
         size: What type of resized images to take
     """
 
-    def __init__(self, root="data/interim", transform=None, train=True, size=512):   
+    def __init__(self, root="data/interim", transform=None, train=True, size=512):
         # Read file with labels
         with open("data/raw/train_data/label.txt") as f:
             data = f.readlines()
@@ -117,12 +117,15 @@ class ClassificationDataset(torch.utils.data.Dataset):
         Returns:
             tuple: (image, target) where target is index of the target class.
         """
-        image = cv2.imread(self.filenames[index], cv2.IMREAD_COLOR)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = self.transform(image=image)["image"]
+        try:
+            image = cv2.imread(self.filenames[index], cv2.IMREAD_COLOR)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            image = self.transform(image=image)["image"]
 
-        target = self.targets[index]
-        return image, target
+            target = self.targets[index]
+            return image, target
+        except:
+            print("Image not found: ", self.filenames[index])
 
     def __len__(self):
         return len(self.filenames)

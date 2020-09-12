@@ -13,7 +13,7 @@ from catalyst.data.dataset.metric_learning import (
 
 
 class ClassificationDataset(MetricLearningTrainDataset, torch.utils.data.Dataset):
-    def __init__(self, root="data/raw", transform=None):   
+    def __init__(self, root="data/raw", transform=None):
         # Read file with labels
         with open(os.path.join(root, "train_data/label.txt")) as f:
             data = f.readlines()
@@ -64,7 +64,6 @@ class QueryGalleryDataset(QueryGalleryDataset, torch.utils.data.Dataset):
             gallery_fraq: gallery size
         """
         self.dataset = ClassificationDataset(root=root, transform=transform)
-
 
         self._gallery_size = int(gallery_fraq * len(self.dataset))
         self._query_size = len(self.dataset) - self._gallery_size

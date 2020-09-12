@@ -5,8 +5,7 @@ from torch.utils.data import DataLoader
 
 import pytorch_tools as pt
 from catalyst import data, dl, utils
-from catalyst.contrib import datasets, models, nn
-import catalyst.data.cv.transforms.torch as t
+from catalyst.contrib import nn
 
 from src.dataset_catalyst import ClassificationDataset, QueryGalleryDataset
 
@@ -25,7 +24,7 @@ transform = albu.Compose(
         albu.VerticalFlip(p=0.5),
         albu.Resize(height=SIZE, width=SIZE, p=1),
         albu.Cutout(num_holes=8, max_h_size=64, max_w_size=64, fill_value=0, p=0.5),
-        albu.Normalize(mean=MEAN, std=STD), 
+        albu.Normalize(mean=MEAN, std=STD),
         albu_pt.ToTensorV2(),
     ],
     p=1.0,
