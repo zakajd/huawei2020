@@ -11,6 +11,9 @@ import functools
 import multiprocessing
 import configargparse as argparse
 
+import torch
+import pandas as pd
+from PIL import Image
 from tqdm import tqdm
 from loguru import logger
 
@@ -61,22 +64,41 @@ def resize_images(files, folder, size):
     return out_filenames
 
 
+def get_single_size(filename):
+    # use PIL to avoid reading image. it's much faster
+    return Image.open(filename).size, filename
+
+
+def get_sizes(filenames):
+    """Returns list of sizes for files in filenames"""
+    with multiprocessing.Pool(NUM_THREADS) as pool:
+        result = list(tqdm(pool.imap(get_single_size, filenames), total=len(filenames)))
+    return result
+
+
 def main(hparams):
     hparams.root = pathlib.Path(hparams.root)
     hparams.output_path = pathlib.Path(hparams.output_path)
 
-    # -------------- Resave images to smaller size --------------
     # Read filenames
     with open(hparams.root / "train_data/label.txt") as f:
         data = f.readlines()
 
-    train_filenames = []
+    filenames, labels = [], []
     for row in data:
-        filename, _ = row.strip("\n").split(",")
-        train_filenames.append(hparams.root / f"train_data" / filename)
+        file, label = row.strip("\n").split(",")
+        filenames.append(file)
+        labels.append(int(label))
 
-    test_A_filenames = list((hparams.root / 'test_data_A').rglob("*.jpg"))
-    # test_B_filenames = (hparams.root / 'test_data_B').rglob("*.jpg")
+    train_filenames = [hparams.root / "train_data" / file for file in filenames]
+
+    test_A_query_files = sorted((hparams.root / "test_data_A" / "query").glob("*.jpg"))
+    test_A_gallery_files = sorted((hparams.root / "test_data_A" / "gallery").glob("*.jpg"))
+    # test_B_query_files = sorted((hparams.root / "test_data_B" / "query").glob("*.jpg"))
+    # test_B_gallery_files = sorted((hparams.root / "test_data_B" / "gallery").glob("*.jpg"))
+
+    test_A_filenames = test_A_query_files + test_A_gallery_files
+    # test_B_filenames = test_B_query_files + test_B_gallery_files
 
     # Delete old images
     shutil.rmtree(hparams.output_path / f"train_data_{hparams.size}", ignore_errors=True)
@@ -106,6 +128,46 @@ def main(hparams):
     #     folder=f"test_data_B",
     #     size=hparams.size)
 
+    logger.info("Creating DF with additional metadata")
+
+    # # Train
+    df_data = {
+        "file_path": filenames,
+        "label": labels,
+    }
+    df = pd.DataFrame(data=df_data)
+
+    # Get original image size as an additional feature
+    result = get_sizes(train_filenames)
+    df.sort_values(by="file_path", inplace=True)
+    sizes = [str(x[0]) for x in sorted(result, key=lambda x: x[1])]
+    df["original_size"] = sizes
+    df["aspect_ratio"] = [round(x[0][0] / x[0][1], 4) for x in sorted(result, key=lambda x: x[1])]
+
+    # Split train data for query / gallery images
+    df["is_query"] = torch.FloatTensor(len(df)).uniform_() < hparams.val_pct
+
+    # Save results
+    df.to_csv(hparams.output_path / "train_val.csv", index=None)
+
+    # Test A
+    df_test_data = {
+        "file_path": [p.relative_to(hparams.root / "test_data_A") for p in test_A_filenames],
+    }
+    df_test = pd.DataFrame(data=df_test_data)
+
+    # Get original image size as an additional feature
+    result = get_sizes(test_A_filenames)
+    df_test.sort_values(by="file_path", inplace=True)
+    sizes = [str(x[0]) for x in sorted(result, key=lambda x: x[1])]
+    df_test["original_size"] = sizes
+    df_test["aspect_ratio"] = [round(x[0][0] / x[0][1], 4) for x in sorted(result, key=lambda x: x[1])]
+
+    df_test["is_query"] = torch.tensor([0.0] * len(test_A_gallery_files) + [1.0] * len(test_A_query_files))
+
+    # Save results
+    df_test.to_csv(hparams.output_path / "test_A.csv", index=None)
+
 
 if __name__ == "__main__":
     # Parse args
@@ -120,8 +182,11 @@ if __name__ == "__main__":
     add_arg("--output_path", type=str, default="data/interim", help="Path to save files")
     add_arg("--root", type=str, default="data/raw", help="Path to all raw data as provided by organizers")
 
-    # resize
+    # Resize
     add_arg("--size", type=int, default=512, help="Size of min side after resize")
+
+    # Split
+    add_arg("--val_pct", type=float, default=0.2, help="Part of train data used as query")
 
     # Setup logger
     config = {"handlers": [{"sink": sys.stdout, "format": "{time:[HH:mm]}:{message}"}]}

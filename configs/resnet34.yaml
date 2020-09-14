@@ -1,12 +1,12 @@
 
 # General
-name: baseline_resnet34_arcface
+name: baseline_resnet34_arcface_callbacks
 seed: 42
 root: data/interim
 batch_size: 32
 workers: 6
 augmentation: light
-debug: false
+debug: true
 resume: ""
 
 # Model

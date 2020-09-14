@@ -22,6 +22,7 @@ def get_aug(aug_type="val", size=512):
     CROP_AUG = albu.Compose([albu.RandomCrop(size, size)])
 
     VAL_AUG = albu.Compose([albu.CenterCrop(size, size), NORM_TO_TENSOR])
+    # VAL_AUG = albu.Compose([albu.Resize(size, size), NORM_TO_TENSOR])
 
     LIGHT_AUG = albu.Compose([CROP_AUG, albu.Flip(), NORM_TO_TENSOR])
 
@@ -32,7 +33,7 @@ def get_aug(aug_type="val", size=512):
             albu.RandomRotate90(p=0.5),
             albu.HorizontalFlip(p=0.5),
             albu.VerticalFlip(p=0.5),
-            albu.Cutout(num_holes=8, max_h_size=64, max_w_size=64, fill_value=0, p=0.5),
+            albu.Cutout(num_holes=8, max_h_size=16, max_w_size=16, fill_value=0, p=0.5),
             NORM_TO_TENSOR,
         ],
         p=1.0,
@@ -40,6 +41,7 @@ def get_aug(aug_type="val", size=512):
 
     types = {
         "val": VAL_AUG,
+        "test": VAL_AUG,
         "light": LIGHT_AUG,
         "hard": HARD_AUG,
     }

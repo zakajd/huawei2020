@@ -13,7 +13,7 @@ from src.arg_parser import parse_args
 from src.datasets import get_dataloaders
 from src.losses import AngularPenaltySMLoss
 from src.models import Model
-from src.callbacks import RocAucMeter, APScoreMeter
+from src.callbacks import ContestMetricsCallback
 # ContestMetricsCallback
 
 
@@ -49,10 +49,12 @@ def main():
 
     num_params = pt.utils.misc.count_parameters(model)[0]
     logger.info(f"Model size: {num_params / 1e6:.02f}M")
+    logger.info(model)
 
     # Get loss
-    loss = AngularPenaltySMLoss(loss_type=hparams.criterion, **hparams.criterion_params).cuda()
-    logger.info(f"Loss for this run is: {hparams.criterion}")
+    # loss = AngularPenaltySMLoss(loss_type=hparams.criterion, **hparams.criterion_params).cuda()
+    loss = torch.nn.CrossEntropyLoss().cuda()
+    logger.info(f"Loss for this run is: {loss}")
 
     # Scheduler is an advanced way of planning experiment
     sheduler = pt.fit_wrapper.callbacks.PhasesScheduler(hparams.phases)
@@ -66,9 +68,8 @@ def main():
         optimizer,
         criterion=loss,
         callbacks=[
-            pt_clb.BatchMetrics([pt.metrics.Accuracy(topk=1)]),
-            # pt_clb.LoaderMetrics(metrics=[RocAucMeter(), APScoreMeter()]),
-            # ContestMetricsCallback(),
+            # pt_clb.BatchMetrics([pt.metrics.Accuracy(topk=1)]),
+            ContestMetricsCallback(),
             pt_clb.Timer(),
             pt_clb.ConsoleLogger(),
             pt_clb.FileLogger(),
@@ -78,7 +79,7 @@ def main():
             # EMA must go after other checkpoints
             # pt_clb.ModelEma(model, hparams.ema_decay) if hparams.ema_decay else NoClbk(),
         ],
-        use_fp16=True,  # use mixed precision by default.  # hparams.opt_level != "O0",
+        use_fp16=False,  # use mixed precision by default.  # hparams.opt_level != "O0",
     )
 
     # Get dataloaders
