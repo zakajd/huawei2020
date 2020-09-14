@@ -1,9 +1,11 @@
 import os
 import cv2
+import pathlib
 
 import torch
 import albumentations as albu
 from loguru import logger
+import pandas as pd
 import albumentations.pytorch as albu_pt
 
 from src.augmentations import get_aug
@@ -124,9 +126,14 @@ class ClassificationDataset(torch.utils.data.Dataset):
     _aspect_ratios = [2, 16/9, 3/2, 4/3, 5/4, 1, 4/5, 3/4, 2/3, 9/16, 1/2]
 
     def __init__(self, root="data/interim", transform=None, train=True, val_pct=0.2, size=512):
-        df = pd.read_csv(os.path.join(root, "train_val.csv")
+        df = pd.read_csv(os.path.join(root, "train_val.csv"))
 
-        self.filenames = df["file_path"].values.tolist()
+        self.filenames = [
+            os.path.join(root, f"train_data_{size}", path) for path in  df["file_path"].values.tolist()]
+        
+        # Сheck that all images exist
+        assert map(lambda x: pathlib.Path(x).exists(), self.filenames), "Found missing images!"
+
         self.targets = df["label"].values.tolist()
         # self.aspect_ratio = df["aspect_ratio"].values.tolist()
         # self.is_query = df["is_query"].values.tolist()
@@ -171,7 +178,10 @@ class TestDataset(torch.utils.data.Dataset):
     """
 
     def __init__(self, root="data/interim", transform=None, size=512, test_type="A"):
-        df = pd.read_csv(os.path.join(root, "test_A.csv")
+        df = pd.read_csv(os.path.join(root, "test_A.csv"))
+
+        self.filenames = [
+            os.path.join(root, f"test_data_A_{size}", path) for path in  df["file_path"].values.tolist()]
         self.filenames = df["file_path"].values.tolist()
         self.is_query = df["is_query"].values.tolist()
         self.transform = albu.Compose([albu_pt.ToTensorV2()]) if transform is None else transform
@@ -193,7 +203,7 @@ class TestDataset(torch.utils.data.Dataset):
 
 
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
-class GroupedBatchSampler(BatchSampler):
+class GroupedBatchSampler(torch.utils.data.sampler.BatchSampler):
     """
     Wraps another sampler to yield a mini-batch of indices.
     It enforces that elements from the same group should appear in groups of batch_size.

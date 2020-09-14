@@ -1,4 +1,5 @@
 import torch
+from loguru import logger
 
 
 class AngularPenaltySMLoss(torch.nn.Module):
@@ -63,6 +64,7 @@ class AngularPenaltySMLoss(torch.nn.Module):
         for W in self.fc.parameters():
             W = torch.nn.functional.normalize(W, p=2)
 
+        # logger.info(f"Loss input shapes {features.shape}, {y_true.shape}")
         # Black magic of matrix calculus
         wf = self.fc(features)
         if self.loss_type == 'cosface':

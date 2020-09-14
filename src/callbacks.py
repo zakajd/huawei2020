@@ -131,9 +131,9 @@ class ContestMetricsCallback(pt.fit_wrapper.callbacks.Callback):
 
         query_labels = target[self.query_mask]
         gallery_labels = target[~self.query_mask]
-        logger.info(f"Query: {query_embeddings.shape} {query_embeddings.type()}, query labels: {query_labels.shape} {query_labels.type()}")
-        logger.info(f"gallery: {gallery_embeddings.shape} {gallery_embeddings.type()}, query labels: {gallery_labels.shape} {gallery_labels.type()}")
-        logger.info(f"Use fp16: {self.state.use_fp16}")
+        # logger.info(f"Query: {query_embeddings.shape} {query_embeddings.type()}, query labels: {query_labels.shape} {query_labels.type()}")
+        # logger.info(f"gallery: {gallery_embeddings.shape} {gallery_embeddings.type()}, query labels: {gallery_labels.shape} {gallery_labels.type()}")
+        # logger.info(f"Use fp16: {self.state.use_fp16}")
         # Shape (query_size x gallery_size)
         conformity_matrix = query_labels.reshape(-1, 1) == gallery_labels
 

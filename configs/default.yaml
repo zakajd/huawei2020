@@ -25,7 +25,7 @@ phases: [
 ]
 
 criterion: cosface
-criterion_params: {in_features: 512, out_features: 3097, s: null, m: null}
+criterion_params: {out_features: 3097, s: null, m: null}
 
 # Validation and testing
 val_frequency: 1

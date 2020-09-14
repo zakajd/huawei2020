@@ -49,11 +49,14 @@ def main():
 
     num_params = pt.utils.misc.count_parameters(model)[0]
     logger.info(f"Model size: {num_params / 1e6:.02f}M")
-    logger.info(model)
+    # logger.info(model)
 
     # Get loss
-    # loss = AngularPenaltySMLoss(loss_type=hparams.criterion, **hparams.criterion_params).cuda()
-    loss = torch.nn.CrossEntropyLoss().cuda()
+    loss = AngularPenaltySMLoss(
+        loss_type=hparams.criterion,
+        in_features=hparams.embedding_size,
+        **hparams.criterion_params).cuda()
+    # loss = torch.nn.CrossEntropyLoss().cuda()
     logger.info(f"Loss for this run is: {loss}")
 
     # Scheduler is an advanced way of planning experiment
@@ -68,7 +71,7 @@ def main():
         optimizer,
         criterion=loss,
         callbacks=[
-            # pt_clb.BatchMetrics([pt.metrics.Accuracy(topk=1)]),
+            pt_clb.BatchMetrics([pt.metrics.Accuracy(topk=1)]),
             ContestMetricsCallback(),
             pt_clb.Timer(),
             pt_clb.ConsoleLogger(),
@@ -92,6 +95,12 @@ def main():
         workers=hparams.workers,
     )
 
+    # for batch in train_loader:
+    #     images, targets = batch
+    #     output = model(images)
+    #     logger.info(f"Train batch images: {images.shape}, labels {targets.shape}, output {output.shape}")
+    #     return
+
     # Train
     for i, phase in enumerate(sheduler.phases):
         start_epoch, end_epoch = phase["ep"]
@@ -102,8 +111,8 @@ def main():
             val_loader=val_loader,
             start_epoch=start_epoch,
             epochs=end_epoch - start_epoch,
-            steps_per_epoch=5 if hparams.debug else None,
-            val_steps=5 if hparams.debug else None,
+            steps_per_epoch=10 if hparams.debug else None,
+            val_steps=10 if hparams.debug else None,
         )
 
         logger.info(f"Loading best model from previous phase")

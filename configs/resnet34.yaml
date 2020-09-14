@@ -1,12 +1,13 @@
 
 # General
-name: baseline_resnet34_arcface_callbacks
+name: debug
+# name: baseline_resnet34_384
 seed: 42
 root: data/interim
 batch_size: 32
 workers: 6
 augmentation: light
-debug: true
+debug: false
 resume: ""
 
 # Model
@@ -16,16 +17,16 @@ embedding_size: 512
 ema_decay: 0.0
 
 # Training
-optim: adamw
+optim: adam
 opt_level: O0
 weight_decay: 0.00001
-size: 768
+size: 384
 phases: [
-    {'ep':[0, 40], 'lr': [0.001,0.00001], size: 768, val_size: 768},
+    {'ep':[0, 15], 'lr': [0.001,0.00001]},
 ]
 
 criterion: arcface
-criterion_params: {in_features: 512, out_features: 3097, s: 64.0, m: 0.3}
+criterion_params: {out_features: 3088, s: 64.0, m: 0.3}
 
 # Validation and testing
 val_frequency: 1

@@ -18,6 +18,6 @@ class Model(torch.nn.Module):
             x: Input images
         Returns:
             Raw model logits
-        """Н
+        """
         x = self.model(x)
         return x
