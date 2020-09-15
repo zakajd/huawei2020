@@ -2,7 +2,7 @@ import math
 import functools
 
 import torch
-# from loguru import logger
+from loguru import logger
 
 
 class AngularPenaltySMLoss(torch.nn.Module):
@@ -128,10 +128,9 @@ class AdditiveAngularMarginLoss(torch.nn.Module):
             y_true: Class labels, not one-hot encoded
         """
         # --------------------------- cos(theta) & phi(theta) ---------------------------
-        cosine = torch.nn.functional.linear(features, torch.nn.functional.normalize(self.weight))
+        cosine = torch.nn.functional.linear(features, torch.nn.functional.normalize(self.weight)).to(features)
         sine = torch.sqrt(1.0 - torch.pow(cosine, 2))
         phi = cosine * self.cos_m - sine * self.sin_m
-
         phi = torch.where(cosine > self.th, phi, cosine - self.mm)
         # --------------------------- convert label to one-hot ---------------------------
         one_hot = torch.zeros(cosine.size(), device=features.device)
@@ -184,7 +183,7 @@ class LargeMarginCosineLoss(torch.nn.Module):
         cosine = torch.nn.functional.linear(features, torch.nn.functional.normalize(self.weight))
         phi = cosine - self.m
         # --------------------------- convert label to one-hot ---------------------------
-        one_hot = torch.zeros(cosine.size(), device=features.device)
+        one_hot = torch.zeros(cosine.size()).to(features)
         one_hot.scatter_(1, y_true.view(-1, 1).long(), 1)
         # -------------torch.where(out_i = {x_i if condition_i else y_i) -------------
         output = (one_hot * phi) + ((1.0 - one_hot) * cosine)  # you can use torch.where if your torch.__version__ is 0.4

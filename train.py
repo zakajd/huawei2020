@@ -78,7 +78,7 @@ def main():
             # EMA must go after other checkpoints
             # pt_clb.ModelEma(model, hparams.ema_decay) if hparams.ema_decay else NoClbk(),
         ],
-        use_fp16=False,  # use mixed precision by default.  # hparams.opt_level != "O0",
+        use_fp16=hparams.use_fp16,  # use mixed precision by default.  # hparams.opt_level != "O0",
     )
 
     # Get dataloaders

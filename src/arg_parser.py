@@ -32,7 +32,7 @@ def get_parser():
     add_arg("--ema_decay", type=float, default=0, help="Decay for ExponentialMoving Average")
 
     # Training
-    add_arg("--opt_level", default="O0", type=str, help="Optimization level for apex")
+    add_arg("--use_fp16", default=False, action="store_true", help="Flag to enable FP16 training")
     add_arg("--optim", type=str, default="adamw", help="Optimizer to use (default: adamw)")
     add_arg("--weight_decay", "--wd", default=1e-4, type=float, help="Weight decay (default: 1e-4)")
     add_arg("--size", default=512, type=int, help="Size of crops to train at")

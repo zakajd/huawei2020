@@ -1,13 +1,13 @@
 
 # General
-# name: debug
-name: baseline_resnet34_384_cosface
+name: debug
+# name: baseline_resnet34_384_arcface
 seed: 42
 root: data/interim
 batch_size: 32
 workers: 6
 augmentation: light
-debug: false
+debug: true
 resume: ""
 
 # Model
@@ -18,7 +18,7 @@ ema_decay: 0.0
 
 # Training
 optim: adamw
-opt_level: O0
+use_fp16: true
 weight_decay: 0.00001
 size: 384
 phases: [
