@@ -38,7 +38,7 @@ def predict_from_loader(model, loader):
             images, _ = batch
         else:
             images = batch
-        embeddings.extend(torch.nn.functional.normalize(model(images), p=2).cpu())
+        embeddings.extend(model(images).cpu())
     return torch.stack(embeddings)
 
 

@@ -1,6 +1,7 @@
 import os
 import cv2
 import pathlib
+import itertools
 
 import torch
 import albumentations as albu
@@ -114,7 +115,7 @@ class ClassificationDataset(torch.utils.data.Dataset):
     This dataset implemets tecnique used for ImageNet training and in some image retrieval papers.
     Images are not resized to fixed aspect ratio, but grouped into some fixed number of bins and
     resized with keeping initial ratio as close, as possible.
-    
+
     Args:
         size: What type of resized images to take
         val_pct: Part of data used for validation
@@ -123,14 +124,14 @@ class ClassificationDataset(torch.utils.data.Dataset):
         https://arxiv.org/pdf/2003.11211.pdf - select limited number of aspect ratios
         https://github.com/cybertronai/imagenet18/blob/218ef7e63894c8a107eb764f27d7cd27309e960d/training/dataloader.py#L231
     """
-    _aspect_ratios = [2, 16/9, 3/2, 4/3, 5/4, 1, 4/5, 3/4, 2/3, 9/16, 1/2]
+    _aspect_ratios = [2, 16 / 9, 3 / 2, 4 / 3, 5 / 4, 1, 4 / 5, 3 / 4, 2 / 3, 9 / 16, 1 / 2]
 
     def __init__(self, root="data/interim", transform=None, train=True, val_pct=0.2, size=512):
         df = pd.read_csv(os.path.join(root, "train_val.csv"))
 
         self.filenames = [
-            os.path.join(root, f"train_data_{size}", path) for path in  df["file_path"].values.tolist()]
-        
+            os.path.join(root, f"train_data_{size}", path) for path in df["file_path"].values.tolist()]
+
         # Сheck that all images exist
         assert map(lambda x: pathlib.Path(x).exists(), self.filenames), "Found missing images!"
 
@@ -181,7 +182,7 @@ class TestDataset(torch.utils.data.Dataset):
         df = pd.read_csv(os.path.join(root, "test_A.csv"))
 
         self.filenames = [
-            os.path.join(root, f"test_data_A_{size}", path) for path in  df["file_path"].values.tolist()]
+            os.path.join(root, f"test_data_A_{size}", path) for path in df["file_path"].values.tolist()]
         self.filenames = df["file_path"].values.tolist()
         self.is_query = df["is_query"].values.tolist()
         self.transform = albu.Compose([albu_pt.ToTensorV2()]) if transform is None else transform
@@ -217,7 +218,7 @@ class GroupedBatchSampler(torch.utils.data.sampler.BatchSampler):
     """
 
     def __init__(self, sampler, group_ids, batch_size, drop_uneven=False):
-        if not isinstance(sampler, Sampler):
+        if not isinstance(sampler, torch.utils.data.Sampler):
             raise ValueError(
                 "sampler should be an instance of "
                 "torch.utils.data.Sampler, but got sampler={}".format(sampler)

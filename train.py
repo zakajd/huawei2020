@@ -11,7 +11,7 @@ from pytorch_tools.optim import optimizer_from_name
 
 from src.arg_parser import parse_args
 from src.datasets import get_dataloaders
-from src.losses import AngularPenaltySMLoss
+from src.losses import LOSS_FROM_NAME
 from src.models import Model
 from src.callbacks import ContestMetricsCallback
 # ContestMetricsCallback
@@ -52,11 +52,7 @@ def main():
     # logger.info(model)
 
     # Get loss
-    loss = AngularPenaltySMLoss(
-        loss_type=hparams.criterion,
-        in_features=hparams.embedding_size,
-        **hparams.criterion_params).cuda()
-    # loss = torch.nn.CrossEntropyLoss().cuda()
+    loss = LOSS_FROM_NAME[hparams.criterion](in_features=hparams.embedding_size, **hparams.criterion_params).cuda()
     logger.info(f"Loss for this run is: {loss}")
 
     # Scheduler is an advanced way of planning experiment
@@ -71,7 +67,7 @@ def main():
         optimizer,
         criterion=loss,
         callbacks=[
-            pt_clb.BatchMetrics([pt.metrics.Accuracy(topk=1)]),
+            # pt_clb.BatchMetrics([pt.metrics.Accuracy(topk=1)]),
             ContestMetricsCallback(),
             pt_clb.Timer(),
             pt_clb.ConsoleLogger(),
@@ -111,8 +107,8 @@ def main():
             val_loader=val_loader,
             start_epoch=start_epoch,
             epochs=end_epoch - start_epoch,
-            steps_per_epoch=10 if hparams.debug else None,
-            val_steps=10 if hparams.debug else None,
+            steps_per_epoch=20 if hparams.debug else None,
+            val_steps=20 if hparams.debug else None,
         )
 
         logger.info(f"Loading best model from previous phase")
