@@ -26,10 +26,11 @@ def get_parser():
 
     # Model
     add_arg("--arch", default="unet", type=str, help="Architecture to use")
-    add_arg("--model_params", type=eval, default={}, help="Additional model params as kwargs")
     add_arg("--embedding_size", type=int, default=512, help="Size of descriptor's dimmension")
-
+    add_arg("--pooling", type=str, default="max", help="Pooling used after last feature map")
+    add_arg("--model_params", type=eval, default={}, help="Additional model params as kwargs")
     add_arg("--ema_decay", type=float, default=0, help="Decay for ExponentialMoving Average")
+
 
     # Training
     add_arg("--use_fp16", default=False, action="store_true", help="Flag to enable FP16 training")

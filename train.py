@@ -41,7 +41,11 @@ def main():
     logger.info(f"Start training")
 
     # Get model and optimizer
-    model = Model(arch=hparams.arch, model_params=hparams.model_params, embedding_size=hparams.embedding_size).cuda()
+    model = Model(
+        arch=hparams.arch,
+        model_params=hparams.model_params,
+        embedding_size=hparams.embedding_size,
+        pooling=hparams.pooling).cuda()
 
     # Get optimizer
     optim_params = pt.utils.misc.filter_bn_from_wd(model)
