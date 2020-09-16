@@ -54,7 +54,7 @@ def test(hparams):
 
     # Get model
     model = Model(arch=hparams.arch, model_params=hparams.model_params, embedding_size=hparams.embedding_size).cuda()
-    logger.info(model)
+    # logger.info(model)
 
     # Init
     checkpoint = torch.load(os.path.join(hparams.config_path, f"model.chpn"))
@@ -81,11 +81,11 @@ def test(hparams):
         # Create random bitmask. 20% of the data used as a query
         # logger.info(f"Len emb: {len(val_embeddings)}. ")
         query_mask = torch.FloatTensor(len(val_embeddings)).uniform_() > 0.8
-        logger.info(f"Len emb: {len(val_embeddings)}. Len query {query_mask.shape}")
 
         # Shape (n_embeddings, embedding_dim)
         query_embeddings, gallery_embeddings = val_embeddings[query_mask], val_embeddings[~query_mask]
         query_labels, gallery_labels = val_labels[query_mask], val_labels[~query_mask]
+        logger.info(f"Query size: {len(query_labels)}. Gallery size {len(gallery_labels)}")
 
         # Shape (query_size x gallery_size)
         conformity_matrix = query_labels.reshape(-1, 1) == gallery_labels
@@ -121,7 +121,7 @@ def test(hparams):
 
         for f, line in zip(query_files, torch.argsort(distances)[:, :10]):
             print(gallery_files[line])
-        #     print(line)
+            print(line)
 
         # final csv should query_img,{gallery_img_list}.
 
@@ -163,7 +163,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--config_path", type=str, help="Path to folder with model config and checkpoint")
+        "--config_path", "-c", type=str, help="Path to folder with model config and checkpoint")
     parser.add_argument(
         "--output_path", type=str, default="data/processed", help="Path to save scores")
     parser.add_argument(

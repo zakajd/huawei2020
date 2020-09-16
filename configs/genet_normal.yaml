@@ -1,18 +1,18 @@
 
 # General
 name: debug
-# name: genet_normal_384_arcface_fp16_gem_light
+# name: genet_normal_384_cosface_fp16_gem_light
 seed: 42
 root: data/interim
-batch_size: 128
-workers: 8
+batch_size: 16
+workers: 6
 augmentation: light
 debug: true
 resume: ""
 
 # Model
 arch: genet_normal
-pooling: "gem"
+pooling: gem
 model_params: {}
 embedding_size: 512
 ema_decay: 0.0
@@ -23,11 +23,11 @@ use_fp16: true
 weight_decay: 0.00001
 size: 384
 phases: [
-    {'ep':[0, 50], 'lr': [0.1,0.00001]}
+    {'ep':[0, 2], 'lr': [0.05,0.00001]}
 ]
 
-criterion: arcface
-criterion_params: {out_features: 3097, s: 64.0, m: 0.3}
+criterion: cosface
+criterion_params: {out_features: 3097, s: 30.0, m: 0.5}
 
 # Validation and testing
 val_size: 768

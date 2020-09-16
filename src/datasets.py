@@ -4,9 +4,10 @@ import pathlib
 import itertools
 
 import torch
-import albumentations as albu
-from loguru import logger
+import numpy as np
 import pandas as pd
+from loguru import logger
+import albumentations as albu
 import albumentations.pytorch as albu_pt
 
 from src.augmentations import get_aug
@@ -40,6 +41,14 @@ def get_dataloaders(
     train_dataset = ClassificationDataset(
         root=root, transform=train_aug, train=True, val_pct=0.2, size=size)
 
+    # sampler = torch.nn.data.sampler.RandomSampler(train_dataset)
+    # gb_sampler = GroupedBatchSampler(
+    #     sampler=sampler,
+    #     group_ids=train_dataset.group_ids,
+    #     batch_size=batch_size,
+    #     drop_uneven=True,
+    # )
+
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=batch_size,
@@ -57,6 +66,7 @@ def get_dataloaders(
         batch_size=batch_size,
         size=val_size,
         workers=workers,
+        val_pct=0.3,
     )
 
     logger.info(f"Train size: {len(train_dataset)}")
@@ -73,12 +83,19 @@ def get_val_dataloader(
     val_dataset = ClassificationDataset(
         root=root, transform=aug, train=False, val_pct=val_pct, size=size)
 
-    # TODO: Add BalancedBatchSampler from Catalyst?
+    # sampler = torch.nn.data.sampler.SequentialSampler(val_dataset)
+    # gb_sampler = GroupedBatchSampler(
+    #     sampler=sampler,
+    #     group_ids=val_dataset.group_ids,
+    #     batch_size=batch_size,
+    #     drop_uneven=False,
+    # )
+
     val_loader = torch.utils.data.DataLoader(
         val_dataset,
         batch_size=batch_size,
         num_workers=workers,
-        pin_memory=True,
+        pin_memory=False,
         shuffle=False,
     )
 
@@ -96,7 +113,14 @@ def get_test_dataloader(
 
     test_dataset = TestDataset(root=root, transform=aug, size=size)
 
-    # TODO: Add BalancedBatchSampler from Catalyst?
+    # sampler = torch.nn.data.sampler.SequentialSampler(test_dataset)
+    # gb_sampler = GroupedBatchSampler(
+    #     sampler=sampler,
+    #     group_ids=val_dataset.group_ids,
+    #     batch_size=batch_size,
+    #     drop_uneven=False,
+    # )
+
     test_loader = torch.utils.data.DataLoader(
         test_dataset,
         batch_size=batch_size,
@@ -113,7 +137,7 @@ def get_test_dataloader(
 class ClassificationDataset(torch.utils.data.Dataset):
     """
     This dataset implemets tecnique used for ImageNet training and in some image retrieval papers.
-    Images are not resized to fixed aspect ratio, but grouped into some fixed number of bins and
+    Images are not resized to fixed aspect ratio, but grouped into fixed number of bins and
     resized with keeping initial ratio as close, as possible.
 
     Args:
@@ -122,9 +146,10 @@ class ClassificationDataset(torch.utils.data.Dataset):
 
     Reference:
         https://arxiv.org/pdf/2003.11211.pdf - select limited number of aspect ratios
-        https://github.com/cybertronai/imagenet18/blob/218ef7e63894c8a107eb764f27d7cd27309e960d/training/dataloader.py#L231
+        https://github.com/cybertronai/imagenet18/master/training/dataloader.py#L231
     """
-    _aspect_ratios = [2, 16 / 9, 3 / 2, 4 / 3, 5 / 4, 1, 4 / 5, 3 / 4, 2 / 3, 9 / 16, 1 / 2]
+
+    _aspect_ratios = np.array([2, 16 / 9, 3 / 2, 4 / 3, 5 / 4, 1, 4 / 5, 3 / 4, 2 / 3, 9 / 16, 1 / 2])
 
     def __init__(self, root="data/interim", transform=None, train=True, val_pct=0.2, size=512):
         df = pd.read_csv(os.path.join(root, "train_val.csv"))
@@ -136,7 +161,7 @@ class ClassificationDataset(torch.utils.data.Dataset):
         assert map(lambda x: pathlib.Path(x).exists(), self.filenames), "Found missing images!"
 
         self.targets = df["label"].values.tolist()
-        # self.aspect_ratio = df["aspect_ratio"].values.tolist()
+        # self.ar = df["aspect_ratio"].values
         # self.is_query = df["is_query"].values.tolist()
 
         # Take `val_pct` of the data for validation
@@ -144,8 +169,18 @@ class ClassificationDataset(torch.utils.data.Dataset):
         if not train:
             val_size = int(len(self.targets) * val_pct)
             self.filenames = self.filenames[: val_size]
+            # self.targets = self.targets[: val_size]
+            # self.ar = self.ar[: val_size]
+
+        # For each aspect ration in `ar` find closest value from the
+        # `_aspect_ratios` and return it's index (group)
+        # self.group_ids = np.argmin(
+        #     np.abs(self._aspect_ratios.reshape(1, -1) - self.ar.reshape(-1, 1)),
+        #     axis=1
+        # )
 
         self.transform = albu.Compose([albu_pt.ToTensorV2()]) if transform is None else transform
+        # self.size = size
 
     def __getitem__(self, index):
         """
@@ -154,14 +189,11 @@ class ClassificationDataset(torch.utils.data.Dataset):
         Returns:
             tuple: (image, target) where target is index of the target class.
         """
-        # try:
         image = cv2.imread(self.filenames[index], cv2.IMREAD_COLOR)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = self.transform(image=image)["image"]
 
         target = self.targets[index]
-        # except:
-        #     print(self.filenames[index])
 
         return image, target
 
@@ -178,14 +210,27 @@ class TestDataset(torch.utils.data.Dataset):
         test_type: One of {'A', 'B'} for different test sets
     """
 
+    _aspect_ratios = np.array([2, 16 / 9, 3 / 2, 4 / 3, 5 / 4, 1, 4 / 5, 3 / 4, 2 / 3, 9 / 16, 1 / 2])
     def __init__(self, root="data/interim", transform=None, size=512, test_type="A"):
         df = pd.read_csv(os.path.join(root, "test_A.csv"))
 
         self.filenames = [
             os.path.join(root, f"test_data_A_{size}", path) for path in df["file_path"].values.tolist()]
         self.filenames = df["file_path"].values.tolist()
-        self.is_query = df["is_query"].values.tolist()
+        self.is_query = df["is_query"].values
         self.transform = albu.Compose([albu_pt.ToTensorV2()]) if transform is None else transform
+
+        self.ar = df["aspect_ratio"].values
+
+        # For each aspect ration in `ar` find closest value from the
+        # `_aspect_ratios` and return it's index (group)
+        self.group_ids = np.argmin(
+            np.abs(self._aspect_ratios.reshape(1, -1) - self.ar.reshape(-1, 1)),
+            axis=1
+        )
+
+        self.transform = albu.Compose([albu_pt.ToTensorV2()]) if transform is None else transform
+        self.size = size
 
     def __getitem__(self, index):
         """
@@ -196,6 +241,15 @@ class TestDataset(torch.utils.data.Dataset):
         """
         image = cv2.imread(self.filenames[index], cv2.IMREAD_COLOR)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+        # # Resize image to have `size` shape on smaller side
+        # h, w = image.shape[:2]
+        # smaller_side = min(h, w)
+        # ratio = size / smaller_side
+        # resized = cv2.resize(image, (round(w * ratio), round(h * ratio)), interpolation=cv2.INTER_CUBIC)
+        
+        # img = cv2.resize(img, self.size_template[self.scale][gid])
+
         image = self.transform(image=image)["image"]
         return image
 

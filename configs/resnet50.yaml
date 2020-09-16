@@ -5,7 +5,7 @@ name: resnet50_384_arcface_fp16
 seed: 42
 root: data/interim
 batch_size: 64
-workers: 8
+workers: 6
 augmentation: light
 debug: false
 resume: ""

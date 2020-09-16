@@ -1,0 +1,96 @@
+[09-16 11:00] - Parameters used for training: Namespace(arch='genet_normal', augmentation='light', batch_size=96, config_file='configs/genet_normal.yaml', criterion='arcface', criterion_params={'out_features': 3097, 's': 64.0, 'm': 0.3}, debug=False, ema_decay=0.0, embedding_size=512, model_params={}, name='genet_normal_384_arcface_fp16_gem_light', optim='adamw', outdir='logs/genet_normal_384_arcface_fp16_gem_light', phases=[{'ep': [0, 50], 'lr': [0.1, 1e-05]}], pooling='gem', resume='', root='data/interim', seed=42, size=384, tta=False, use_fp16=True, val_frequency=1, val_size=768, weight_decay=1e-05, workers=8)
+[09-16 11:00] - Start training
+[09-16 11:00] - Model size: 19.89M
+[09-16 11:00] - Loss for this run is: AdditiveAngularMarginLoss(
+  (criterion): CrossEntropyLoss()
+)
+[09-16 11:00] - Val size: 13761
+[09-16 11:00] - Train size: 68805
+[09-16 11:00] - Start phase #1 from epoch 0 to epoch 50: {'ep': [0, 50], 'lr': [0.1, 1e-05], 'mom': [], 'mode': 'linear'}
+[09-16 11:00] - Epoch 1 | lr 0.00e+00
+[09-16 11:03] - 
+TimeMeter profiling. Data time: 7.06E-04s. Model time: 2.48E-01s 
+
+[09-16 11:05] - Train loss: 28.0303 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 11:05] - Val   loss: 27.4266 | Acc_@1: 0.1631 | mAP@10: 0.2079 | .5Acc+.5mAP: 0.1855 | CMC@10: 0.4059
+[09-16 11:05] - Epoch  1: best loss improved from inf to 27.4266
+[09-16 11:05] - Epoch 2 | lr 9.86e-02
+[09-16 11:09] - Train loss: 25.6996 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 11:09] - Val   loss: 26.6146 | Acc_@1: 0.4253 | mAP@10: 0.4475 | .5Acc+.5mAP: 0.4364 | CMC@10: 0.6734
+[09-16 11:09] - Epoch  2: best loss improved from 27.4266 to 26.6146
+[09-16 11:09] - Epoch 3 | lr 9.66e-02
+[09-16 11:14] - Train loss: 22.5723 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 11:14] - Val   loss: 26.6324 | Acc_@1: 0.4756 | mAP@10: 0.4894 | .5Acc+.5mAP: 0.4825 | CMC@10: 0.7098
+[09-16 11:14] - Epoch 4 | lr 9.46e-02
+[09-16 11:19] - Train loss: 19.3539 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 11:19] - Val   loss: 24.8404 | Acc_@1: 0.6454 | mAP@10: 0.6499 | .5Acc+.5mAP: 0.6477 | CMC@10: 0.8457
+[09-16 11:19] - Epoch  4: best loss improved from 26.6146 to 24.8404
+[09-16 11:19] - Epoch 5 | lr 9.26e-02
+[09-16 11:23] - Train loss: 16.3351 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 11:23] - Val   loss: 23.7217 | Acc_@1: 0.7311 | mAP@10: 0.7277 | .5Acc+.5mAP: 0.7294 | CMC@10: 0.8832
+[09-16 11:23] - Epoch  5: best loss improved from 24.8404 to 23.7217
+[09-16 11:23] - Epoch 6 | lr 9.06e-02
+[09-16 11:28] - Train loss: 13.6351 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 11:28] - Val   loss: 23.9860 | Acc_@1: 0.6992 | mAP@10: 0.6961 | .5Acc+.5mAP: 0.6977 | CMC@10: 0.8599
+[09-16 11:28] - Epoch 7 | lr 8.86e-02
+[09-16 11:32] - Train loss: 11.3586 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 11:32] - Val   loss: 22.5496 | Acc_@1: 0.7459 | mAP@10: 0.7397 | .5Acc+.5mAP: 0.7428 | CMC@10: 0.8928
+[09-16 11:32] - Epoch  7: best loss improved from 23.7217 to 22.5496
+[09-16 11:32] - Epoch 8 | lr 8.66e-02
+[09-16 11:37] - Train loss: 9.5676 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 11:37] - Val   loss: 20.7320 | Acc_@1: 0.7905 | mAP@10: 0.7841 | .5Acc+.5mAP: 0.7873 | CMC@10: 0.9197
+[09-16 11:37] - Epoch  8: best loss improved from 22.5496 to 20.7320
+[09-16 11:37] - Epoch 9 | lr 8.46e-02
+[09-16 11:43] - Train loss: 8.0877 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 11:43] - Val   loss: 19.9834 | Acc_@1: 0.7916 | mAP@10: 0.7882 | .5Acc+.5mAP: 0.7899 | CMC@10: 0.9112
+[09-16 11:43] - Epoch  9: best loss improved from 20.7320 to 19.9834
+[09-16 11:43] - Epoch 10 | lr 8.26e-02
+[09-16 11:48] - Train loss: 6.9358 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 11:48] - Val   loss: 20.0579 | Acc_@1: 0.7785 | mAP@10: 0.7691 | .5Acc+.5mAP: 0.7738 | CMC@10: 0.9023
+[09-16 11:48] - Epoch 11 | lr 8.06e-02
+[09-16 11:52] - Train loss: 5.9542 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 11:52] - Val   loss: 22.3705 | Acc_@1: 0.7403 | mAP@10: 0.7366 | .5Acc+.5mAP: 0.7384 | CMC@10: 0.8797
+[09-16 11:52] - Epoch 12 | lr 7.86e-02
+[09-16 11:57] - Train loss: 5.1467 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 11:57] - Val   loss: 19.5716 | Acc_@1: 0.7781 | mAP@10: 0.7699 | .5Acc+.5mAP: 0.7740 | CMC@10: 0.8910
+[09-16 11:57] - Epoch 12: best loss improved from 19.9834 to 19.5716
+[09-16 11:57] - Epoch 13 | lr 7.66e-02
+[09-16 12:01] - Train loss: 4.4965 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 12:01] - Val   loss: 17.8268 | Acc_@1: 0.8401 | mAP@10: 0.8329 | .5Acc+.5mAP: 0.8365 | CMC@10: 0.9413
+[09-16 12:01] - Epoch 13: best loss improved from 19.5716 to 17.8268
+[09-16 12:01] - Epoch 14 | lr 7.46e-02
+[09-16 12:06] - Train loss: 3.9444 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 12:06] - Val   loss: 18.3189 | Acc_@1: 0.8185 | mAP@10: 0.8134 | .5Acc+.5mAP: 0.8159 | CMC@10: 0.9218
+[09-16 12:06] - Epoch 15 | lr 7.26e-02
+[09-16 12:10] - Train loss: 3.4671 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 12:10] - Val   loss: 17.4392 | Acc_@1: 0.8309 | mAP@10: 0.8246 | .5Acc+.5mAP: 0.8277 | CMC@10: 0.9321
+[09-16 12:10] - Epoch 15: best loss improved from 17.8268 to 17.4392
+[09-16 12:10] - Epoch 16 | lr 7.06e-02
+[09-16 12:15] - Train loss: 3.0607 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 12:15] - Val   loss: 17.2145 | Acc_@1: 0.8418 | mAP@10: 0.8359 | .5Acc+.5mAP: 0.8389 | CMC@10: 0.9388
+[09-16 12:15] - Epoch 16: best loss improved from 17.4392 to 17.2145
+[09-16 12:15] - Epoch 17 | lr 6.86e-02
+[09-16 12:19] - Train loss: 2.7669 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 12:19] - Val   loss: 17.0682 | Acc_@1: 0.8485 | mAP@10: 0.8438 | .5Acc+.5mAP: 0.8462 | CMC@10: 0.9434
+[09-16 12:19] - Epoch 17: best loss improved from 17.2145 to 17.0682
+[09-16 12:19] - Epoch 18 | lr 6.66e-02
+[09-16 12:24] - Train loss: 2.4177 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 12:24] - Val   loss: 17.5260 | Acc_@1: 0.8266 | mAP@10: 0.8206 | .5Acc+.5mAP: 0.8236 | CMC@10: 0.9349
+[09-16 12:24] - Epoch 19 | lr 6.46e-02
+[09-16 12:28] - Train loss: 2.1739 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 12:28] - Val   loss: 17.2191 | Acc_@1: 0.8259 | mAP@10: 0.8186 | .5Acc+.5mAP: 0.8223 | CMC@10: 0.9268
+[09-16 12:28] - Epoch 20 | lr 6.26e-02
+[09-16 12:32] - Train loss: 1.9527 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 12:32] - Val   loss: 16.9233 | Acc_@1: 0.8284 | mAP@10: 0.8258 | .5Acc+.5mAP: 0.8271 | CMC@10: 0.9292
+[09-16 12:32] - Epoch 20: best loss improved from 17.0682 to 16.9233
+[09-16 12:32] - Epoch 21 | lr 6.06e-02
+[09-16 12:37] - Train loss: 1.7568 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 12:37] - Val   loss: 17.4449 | Acc_@1: 0.8181 | mAP@10: 0.8158 | .5Acc+.5mAP: 0.8170 | CMC@10: 0.9285
+[09-16 12:37] - Epoch 22 | lr 5.86e-02
+[09-16 12:41] - Train loss: 1.5686 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 12:41] - Val   loss: 16.3939 | Acc_@1: 0.8517 | mAP@10: 0.8431 | .5Acc+.5mAP: 0.8474 | CMC@10: 0.9452
+[09-16 12:41] - Epoch 22: best loss improved from 16.9233 to 16.3939
+[09-16 12:41] - Epoch 23 | lr 5.66e-02
+[09-16 12:46] - Train loss: 1.4181 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 12:46] - Val   loss: 17.1540 | Acc_@1: 0.8185 | mAP@10: 0.8126 | .5Acc+.5mAP: 0.8155 | CMC@10: 0.9257
+[09-16 12:46] - Epoch 24 | lr 5.46e-02

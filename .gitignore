@@ -16,4 +16,4 @@ __pycache__/
 data
 data/*
 .vscode/
-logs/
+logs/*/*.chpn

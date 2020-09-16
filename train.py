@@ -10,7 +10,7 @@ import pytorch_tools.fit_wrapper.callbacks as pt_clb
 from pytorch_tools.optim import optimizer_from_name
 
 from src.arg_parser import parse_args
-from src.datasets import get_dataloaders
+from src.datasets import get_dataloaders, get_val_dataloader
 from src.losses import LOSS_FROM_NAME
 from src.models import Model
 from src.callbacks import ContestMetricsCallback

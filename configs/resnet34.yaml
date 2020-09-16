@@ -12,6 +12,7 @@ resume: ""
 
 # Model
 arch: resnet34
+pooling: avg
 model_params: {}
 embedding_size: 512
 ema_decay: 0.0
