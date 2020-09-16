@@ -1,0 +1,17 @@
+[09-16 19:28] - Parameters used for training: Namespace(arch='genet_normal', augmentation='hard', batch_size=96, config_file='configs/genet_normal.yaml', criterion='arcface', criterion_params={'out_features': 3097, 's': 64.0, 'm': 0.5}, debug=False, ema_decay=0.999, embedding_size=512, model_params={}, name='genet_normal_512_arcface_fp16_gem_hard_ema', optim='adamw', outdir='logs/genet_normal_512_arcface_fp16_gem_hard_ema', phases=[{'ep': [0, 50], 'lr': [0.5, 1e-05]}], pooling='gem', resume='', root='data/interim', seed=42, size=512, tta=False, use_fp16=True, val_frequency=1, val_size=768, weight_decay=1e-05, workers=6)
+[09-16 19:28] - Start training
+[09-16 19:28] - Model size: 19.89M
+[09-16 19:28] - Loss for this run is: AdditiveAngularMarginLoss(
+  (criterion): CrossEntropyLoss()
+)
+[09-16 19:28] - Val size: 20643
+[09-16 19:28] - Train size: 68811
+[09-16 19:28] - Start phase #1 from epoch 0 to epoch 50: {'ep': [0, 50], 'lr': [0.5, 1e-05], 'mom': [], 'mode': 'linear'}
+[09-16 19:28] - Epoch 1 | lr 0.00e+00
+[09-16 19:33] - 
+TimeMeter profiling. Data time: 1.28E-03s. Model time: 4.04E-01s 
+
+[09-16 19:35] - Train loss: 39.9080 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 19:35] - Val   loss: 42.5368 | Acc_@1: 0.0247 | mAP@10: 0.0394 | .5Acc+.5mAP: 0.0321 | CMC@10: 0.0919
+[09-16 19:35] - Epoch  1: best loss improved from inf to 42.5368
+[09-16 19:35] - Epoch 2 | lr 4.91e-01

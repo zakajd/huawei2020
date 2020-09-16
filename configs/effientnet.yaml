@@ -1,7 +1,7 @@
 
 # General
 # name: debug
-name: genet_normal_512_arcface_fp16_gem_hard_ema
+name: effnet6_normal_512_arcface_fp16_gem_hard_ema
 seed: 42
 root: data/interim
 batch_size: 96
@@ -11,7 +11,7 @@ debug: false
 resume: ""
 
 # Model
-arch: genet_normal
+arch: efficientnet_b5
 pooling: gem
 model_params: {}
 embedding_size: 512
@@ -23,7 +23,7 @@ use_fp16: true
 weight_decay: 0.00001
 size: 512
 phases: [
-    {ep: [0, 50], lr: [0.5,0.00001]}
+    {ep: [0, 50], lr: [0.001,0.00001]}
 ]
 
 criterion: arcface
