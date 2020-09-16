@@ -49,7 +49,7 @@ def main():
 
     # Get optimizer
     optim_params = pt.utils.misc.filter_bn_from_wd(model)
-    optimizer = optimizer_from_name(hparams.optim)(optim_params, lr=0, weight_decay=hparams.weight_decay)
+    optimizer = optimizer_from_name(hparams.optim)(optim_params, lr=0, weight_decay=hparams.weight_decay, amsgrad=True)
 
     num_params = pt.utils.misc.count_parameters(model)[0]
     logger.info(f"Model size: {num_params / 1e6:.02f}M")
@@ -77,10 +77,10 @@ def main():
             pt_clb.ConsoleLogger(),
             pt_clb.FileLogger(),
             TB_callback,
-            pt_clb.CheckpointSaver(hparams.outdir, save_name=f"model.chpn"),
+            pt_clb.CheckpointSaver(hparams.outdir, save_name="model.chpn"),
             sheduler,
             # EMA must go after other checkpoints
-            # pt_clb.ModelEma(model, hparams.ema_decay) if hparams.ema_decay else NoClbk(),
+            pt_clb.ModelEma(model, hparams.ema_decay) if hparams.ema_decay else pt_clb.Callback(),
         ],
         use_fp16=hparams.use_fp16,  # use mixed precision by default.  # hparams.opt_level != "O0",
     )
