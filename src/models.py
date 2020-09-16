@@ -2,9 +2,12 @@
 Most functions in this file are taken from:
 https://github.com/lyakaap/Landmark2019-1st-and-3rd-Place-Solution/
 """
+import sys
 import torch
 import pytorch_tools as pt
 
+sys.path.append("/home/zakirov/repoz/GPU-Efficient-Networks/")
+import GENet
 
 class Model(torch.nn.Module):
     """Model for query searches
@@ -14,8 +17,19 @@ class Model(torch.nn.Module):
     def __init__(self, arch='resnet50', embedding_size=512, pooling="avg", model_params={},):
         # All models return raw logits
         super().__init__()
-        self.model = pt.models.__dict__[arch](num_classes=embedding_size, **model_params)
-        self.pooling = POOLING_FROM_NAME[pooling]
+        if arch == 'genet_normal':
+            self.model = GENet.genet_normal(
+                pretrained=True,
+                num_classes=1000,
+                root="/home/zakirov/repoz/GPU-Efficient-Networks/GENet_params"
+            )
+            self.model.fc_linear = torch.nn.Linear(in_features=2560, out_features=embedding_size)
+            torch.nn.init.xavier_uniform_(self.model.fc_linear.weight)
+            self.model.adptive_avg_pool.netblock = POOLING_FROM_NAME[pooling]
+            self.forward = self.forward_genet
+        else:
+            self.model = pt.models.__dict__[arch](num_classes=embedding_size, **model_params)
+            self.pooling = POOLING_FROM_NAME[pooling]
 
     def forward(self, x):
         """
@@ -36,6 +50,11 @@ class Model(torch.nn.Module):
         x = torch.nn.functional.normalize(x, p=2)
         return x
 
+    def forward_genet(self, x):
+        x = self.model(x)
+        # Normalize features
+        x = torch.nn.functional.normalize(x, p=2)
+        return x        
 
 # --------------------------------------
 # Pooling layers
