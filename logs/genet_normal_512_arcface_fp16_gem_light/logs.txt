@@ -1,0 +1,29 @@
+[09-16 17:33] - Parameters used for training: Namespace(arch='genet_normal', augmentation='light', batch_size=96, config_file='configs/genet_normal.yaml', criterion='arcface', criterion_params={'out_features': 3097, 's': 64.0, 'm': 0.5}, debug=False, ema_decay=0.0, embedding_size=512, model_params={}, name='genet_normal_512_arcface_fp16_gem_light', optim='adamw', outdir='logs/genet_normal_512_arcface_fp16_gem_light', phases=[{'ep': [0, 50], 'lr': [0.05, 1e-05], 'mode': 'cos'}], pooling='gem', resume='', root='data/interim', seed=42, size=512, tta=False, use_fp16=True, val_frequency=1, val_size=768, weight_decay=1e-05, workers=6)
+[09-16 17:33] - Start training
+[09-16 17:33] - Model size: 19.89M
+[09-16 17:33] - Loss for this run is: AdditiveAngularMarginLoss(
+  (criterion): CrossEntropyLoss()
+)
+[09-16 17:33] - Val size: 20641
+[09-16 17:33] - Train size: 68805
+[09-16 17:33] - Start phase #1 from epoch 0 to epoch 50: {'ep': [0, 50], 'lr': [0.05, 1e-05], 'mode': 'cos', 'mom': []}
+[09-16 17:34] - Epoch 1 | lr 0.00e+00
+[09-16 17:39] - 
+TimeMeter profiling. Data time: 8.19E-04s. Model time: 4.29E-01s 
+
+[09-16 17:41] - Train loss: 38.7180 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 17:41] - Val   loss: 36.9962 | Acc_@1: 0.5609 | mAP@10: 0.5814 | .5Acc+.5mAP: 0.5711 | CMC@10: 0.7946
+[09-16 17:41] - Epoch  1: best loss improved from inf to 36.9962
+[09-16 17:41] - Epoch 2 | lr 5.00e-02
+[09-16 17:49] - Train loss: 33.4835 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 17:49] - Val   loss: 33.9473 | Acc_@1: 0.7120 | mAP@10: 0.7133 | .5Acc+.5mAP: 0.7127 | CMC@10: 0.8770
+[09-16 17:49] - Epoch  2: best loss improved from 36.9962 to 33.9473
+[09-16 17:49] - Epoch 3 | lr 4.98e-02
+[09-16 17:57] - Train loss: 28.3032 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 17:57] - Val   loss: 30.4507 | Acc_@1: 0.7740 | mAP@10: 0.7687 | .5Acc+.5mAP: 0.7713 | CMC@10: 0.9082
+[09-16 17:57] - Epoch  3: best loss improved from 33.9473 to 30.4507
+[09-16 17:57] - Epoch 4 | lr 4.96e-02
+[09-16 18:04] - Train loss: 23.8399 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-16 18:04] - Val   loss: 26.8715 | Acc_@1: 0.8458 | mAP@10: 0.8373 | .5Acc+.5mAP: 0.8415 | CMC@10: 0.9460
+[09-16 18:04] - Epoch  4: best loss improved from 30.4507 to 26.8715
+[09-16 18:04] - Epoch 5 | lr 4.92e-02

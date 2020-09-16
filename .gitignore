@@ -16,4 +16,8 @@ __pycache__/
 data
 data/*
 .vscode/
+
 logs/*/*.chpn
+logs/*/train_val.csv
+logs/*/test_A.csv
+logs/*/test_B.csv

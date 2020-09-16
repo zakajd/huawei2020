@@ -1,13 +1,13 @@
 
 # General
-name: debug
-# name: genet_normal_384_cosface_fp16_gem_light
+# name: debug
+name: genet_normal_512_arcface_fp16_gem_light
 seed: 42
 root: data/interim
-batch_size: 16
+batch_size: 96
 workers: 6
 augmentation: light
-debug: true
+debug: false
 resume: ""
 
 # Model
@@ -21,13 +21,13 @@ ema_decay: 0.0
 optim: adamw
 use_fp16: true
 weight_decay: 0.00001
-size: 384
+size: 512
 phases: [
-    {'ep':[0, 2], 'lr': [0.05,0.00001]}
+    {ep: [0, 50], lr: [0.05,0.00001], mode: 'cos'}
 ]
 
-criterion: cosface
-criterion_params: {out_features: 3097, s: 30.0, m: 0.5}
+criterion: arcface
+criterion_params: {out_features: 3097, s: 64.0, m: 0.5}
 
 # Validation and testing
 val_size: 768

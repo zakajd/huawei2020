@@ -105,11 +105,11 @@ def get_val_dataloader(
 
 
 def get_test_dataloader(
-        root="data/interim", batch_size=8, size=512, workers=6):
+        root="data/interim", augmentation="test", batch_size=8, size=512, workers=6):
     """
     Returns only test dataloader
     """
-    aug = get_aug("test", size=size)
+    aug = get_aug(augmentation, size=size)
 
     test_dataset = TestDataset(root=root, transform=aug, size=size)
 
@@ -216,18 +216,18 @@ class TestDataset(torch.utils.data.Dataset):
 
         self.filenames = [
             os.path.join(root, f"test_data_A_{size}", path) for path in df["file_path"].values.tolist()]
-        self.filenames = df["file_path"].values.tolist()
         self.is_query = df["is_query"].values
-        self.transform = albu.Compose([albu_pt.ToTensorV2()]) if transform is None else transform
 
-        self.ar = df["aspect_ratio"].values
+        # Сheck that all images exist
+        assert map(lambda x: pathlib.Path(x).exists(), self.filenames), "Found missing images!"
 
+        # self.ar = df["aspect_ratio"].values
         # For each aspect ration in `ar` find closest value from the
         # `_aspect_ratios` and return it's index (group)
-        self.group_ids = np.argmin(
-            np.abs(self._aspect_ratios.reshape(1, -1) - self.ar.reshape(-1, 1)),
-            axis=1
-        )
+        # self.group_ids = np.argmin(
+        #     np.abs(self._aspect_ratios.reshape(1, -1) - self.ar.reshape(-1, 1)),
+        #     axis=1
+        # )
 
         self.transform = albu.Compose([albu_pt.ToTensorV2()]) if transform is None else transform
         self.size = size
