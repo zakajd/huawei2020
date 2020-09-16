@@ -40,12 +40,16 @@ def main():
 
     logger.info(f"Start training")
 
-    # Get model and optimizer
+    # Get model
     model = Model(
         arch=hparams.arch,
         model_params=hparams.model_params,
         embedding_size=hparams.embedding_size,
         pooling=hparams.pooling).cuda()
+
+    if hparams.resume:
+        checkpoint = torch.load(hparams.resume, map_location=lambda storage, loc: storage.cuda())
+        model.load_state_dict(checkpoint["state_dict"], strict=False)
 
     # Get optimizer
     optim_params = pt.utils.misc.filter_bn_from_wd(model)
