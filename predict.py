@@ -3,7 +3,6 @@
 2. Take test data and predict on it
 """
 import os
-import cv2
 import time
 import yaml
 import argparse
@@ -13,12 +12,40 @@ import torch
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-import pytorch_tools as pt
+# import pytorch_tools as pt
 from loguru import logger
 
 from src.datasets import get_val_dataloader, get_test_dataloader
 from src.callbacks import cmc_score_count, rank_map_score
 from src.models import Model
+
+
+def query_expansion(query_embeddings, gallery_embeddings, top_k=10, alpha=3):
+    """
+    Implementation of Data Base Augmentation / Alpha Query Expansion
+    Args:
+        query_embeddings (Tensor): Shape (N, embedding_dim)
+        gallery_embeddings (Tensor): Shape (M, embedding_dim)
+        top_k (int): How many neighbours to use
+        alpha (int): Power for neighbours reweighting
+        include_self (bool): Flag to include original embed in new one
+    """
+    # Matrix of pairwise cosin distances
+    distances = torch.cdist(query_embeddings, gallery_embeddings)
+    # Nearest neighbours
+    topk_vals, topk_ind = distances.neg().topk(top_k, dim=1)
+    # Get weight
+    if alpha is None:
+        weight = torch.div(top_k - torch.arange(top_k), float(top_k))[None, :, None]  # N x TOPK x 1
+    else:
+        cosine_dist = (2 - topk_vals.neg()) * 0.5  # cos = ((2 - l2_distances) / 2)
+        weight = (cosine_dist ** alpha)[..., None]  # N x TOPK -> N x TOPK x 1
+
+    new_embedding = query_embeddings[topk_ind] * weight  # N x TOPK x EMBED_SIZE * N x TOPK x 1
+    new_embedding = new_embedding.sum(dim=1)
+    # new_embedding = new_embedding.mean(dim=1)
+    new_embedding = torch.nn.functional.normalize(new_embedding, p=2, dim=1)
+    return new_embedding
 
 
 @torch.no_grad()
@@ -34,7 +61,6 @@ def predict_from_loader(model, loader):
     # TODO: Add TTA here with rescaling?
 
     embeddings = []
-    labels = []
     for batch in tqdm(loader):
         if isinstance(batch, list):
             images, _ = batch
@@ -56,7 +82,11 @@ def test(hparams):
     hparams = argparse.Namespace(**model_configs)
 
     # Get model
-    model = Model(arch=hparams.arch, model_params=hparams.model_params, embedding_size=hparams.embedding_size).cuda()
+    model = Model(
+        arch=hparams.arch,
+        model_params=hparams.model_params,
+        embedding_size=hparams.embedding_size,
+        pooling=hparams.pooling).cuda()
     # logger.info(model)
 
     # Init
@@ -65,143 +95,141 @@ def test(hparams):
 
     # -------------- Get embeddings for val and test data --------------
     if hparams.extract_embeddings:
-        # Val
-        loader, _ = get_val_dataloader(
-            root=hparams.root,
-            augmentation="val",
-            batch_size=hparams.batch_size,
-            size=hparams.size,
-            workers=hparams.workers,
-            val_pct=1.0, # !!! 
-        )
+        if hparams.validation:
+            loader, _ = get_val_dataloader(
+                root=hparams.root,
+                augmentation="val",
+                batch_size=hparams.batch_size,
+                size=hparams.size,
+                workers=hparams.workers,
+                val_pct=1.0,
+            )
 
-        val_embeddings = predict_from_loader(model, loader)
-        df_val = pd.read_csv(os.path.join(hparams.root, "train_val.csv"))
-        # TODO: Check that embeddings match images
-        # Hack to save torch.Tensor into pd.DataFrame
-        df_val["embeddings"]  = list(map(lambda r: np.array(r).tolist(), val_embeddings))
-        # Save results into folder with logs
-        df_val.to_csv(hparams.config_path / "train_val.csv", index=None)
-        del val_embeddings
-        logger.info("Finished extracting validation embeddings")
+            val_embeddings = predict_from_loader(model, loader)
+            df_val = pd.read_csv(os.path.join(hparams.root, "train_val.csv"))
+            # Hack to save torch.Tensor into pd.DataFrame
+            df_val["embeddings"] = list(map(lambda r: np.array(r).tolist(), val_embeddings))
+            # Save results into folder with logs
+            df_val.to_csv(hparams.config_path / "train_val.csv", index=None)
+            del val_embeddings
+            logger.info("Finished extracting validation embeddings")
 
-        # Test
-        loader, _ = get_test_dataloader(
-            root=hparams.root,
-            augmentation="test",
-            batch_size=hparams.batch_size,
-            size=hparams.size,
-            workers=hparams.workers,
-        )
-        test_embeddings = predict_from_loader(model, loader)
-        df_test = pd.read_csv(os.path.join(hparams.root, "test_A.csv"))
-        # TODO: Check that embeddings match images
-        # Hack to save torch.Tensor into pd.DataFrame
-        df_test["embeddings"]  = list(map(lambda r: np.array(r).tolist(), test_embeddings))
-        # Save results into folder with logs
-        df_test.to_csv(hparams.config_path / "test_A.csv", index=None)
-        del test_embeddings
-        logger.info("Finished extracting test embeddings")
+        if hparams.test:
+            loader, _ = get_test_dataloader(
+                root=hparams.root,
+                augmentation="test",
+                batch_size=hparams.batch_size,
+                size=hparams.size,
+                workers=hparams.workers,
+            )
+            test_embeddings = predict_from_loader(model, loader)
+            df_test = pd.read_csv(os.path.join(hparams.root, "test_A.csv"))
+            # Hack to save torch.Tensor into pd.DataFrame
+            df_test["embeddings"] = list(map(lambda r: np.array(r).tolist(), test_embeddings))
+            # Save results into folder with logs
+            df_test.to_csv(hparams.config_path / "test_A.csv", index=None)
+            del test_embeddings
+            logger.info("Finished extracting test embeddings")
 
     # -------------- Test model on validation dataset --------------
-    if hparams.test_validation:
+    if hparams.validation:
         # Read DF
         df_val = pd.read_csv(hparams.config_path / "train_val.csv")
         val_embeddings = torch.tensor(list(map(eval, df_val["embeddings"].values)))
-        query_mask = df["is_query"].values
+        query_mask = df_val["is_query"].values.astype(np.bool)
+        val_labels = df_val["label"].values
 
         # Shape (n_embeddings, embedding_dim)
         query_embeddings, gallery_embeddings = val_embeddings[query_mask], val_embeddings[~query_mask]
         query_labels, gallery_labels = val_labels[query_mask], val_labels[~query_mask]
-        logger.info(f"Validation query size - {len(query_labels)}, gallery size - {len(gallery_labels)}")
+        logger.info(f"Validation query size - {len(query_embeddings)}, gallery size - {len(gallery_embeddings)}")
+        del val_embeddings
+
+        if hparams.dba:
+            gallery_embeddings = query_expansion(gallery_embeddings, gallery_embeddings, topk=10, alpha=None)
+
+        if hparams.aqe:
+            query_embeddings = query_expansion(query_embeddings, gallery_embeddings, topk=3, alpha=3)
 
         # Shape (query_size x gallery_size)
-        conformity_matrix = query_labels.reshape(-1, 1) == gallery_labels
+        conformity_matrix = torch.tensor(query_labels.reshape(-1, 1) == gallery_labels)
 
         # Matrix of pairwise cosin distances
         distances = torch.cdist(query_embeddings, gallery_embeddings)
 
         acc1 = cmc_score_count(distances, conformity_matrix, topk=1)
-        cmc10 = cmc_score_count(distances, conformity_matrix, topk=10)
         map10 = rank_map_score(distances, conformity_matrix, topk=10)
-        target_metric = 0.5 * acc1 + 0.5 * map10
+
         logger.info(
-            f"Val: Acc@1 {acc1:0.5f}, CMC@10 {cmc10:0.5f}, mAP@10 {map10:0.5f}, target {target_metric:0.5f}")
+            f"Val: Acc@1 {acc1:0.5f}, mAP@10 {map10:0.5f}, Target {0.5 * acc1 + 0.5 * map10:0.5f}")
 
     # -------------- Predict on  test dataset  --------------
-    # if hparams.test:
-    #     loader, is_query = get_test_dataloader(
-    #         root=hparams.root,
-    #         batch_size=hparams.batch_size,
-    #         size=hparams.size,
-    #         workers=hparams.workers,
-    #     )
-    #     test_embeddings = predict_from_loader(model, loader)
+    if hparams.test:
+        df_test = pd.read_csv(hparams.config_path / "test_A.csv")
+        test_embeddings = torch.tensor(list(map(eval, df_test["embeddings"].values)))
+        query_mask = df_test["is_query"].values.astype(np.bool)
+        query_files, gallery_files = df_test["file_path"].values[query_mask], df_test["file_path"].values[~query_mask]
 
-    #     is_query = is_query.type(torch.bool)
-    #     # Shape (n_embeddings, embedding_dim)
-    #     query_embeddings, gallery_embeddings = test_embeddings[is_query], test_embeddings[~is_query]
+        # Shape (n_embeddings, embedding_dim)
+        query_embeddings, gallery_embeddings = test_embeddings[query_mask], test_embeddings[~query_mask]
+        query_files, gallery_files = df_test["file_path"].values[query_mask], df_test["file_path"].values[~query_mask]
+        logger.info(f"Test query size - {len(query_embeddings)}, gallery size - {len(gallery_embeddings)}")
+        del test_embeddings
 
-    #     # Matrix of pairwise cosin distances
-    #     distances = torch.cdist(query_embeddings, gallery_embeddings)
+        if hparams.dba:
+            gallery_embeddings = query_expansion(gallery_embeddings, gallery_embeddings, topk=10, alpha=None)
 
-    #     # Select first 10 matches, because other values are not scored
+        if hparams.aqe:
+            query_embeddings = query_expansion(query_embeddings, gallery_embeddings, topk=3, alpha=3)
 
-    #     for f, line in zip(query_files, torch.argsort(distances)[:, :10]):
-    #         print(gallery_files[line])
-    #         print(line)
+        # Matrix of pairwise cosin distances
+        distances = torch.cdist(query_embeddings, gallery_embeddings)
+        perm_matrix = torch.argsort(distances)
 
-        # final csv should query_img,{gallery_img_list}.
+        logger.info(f"Creating submission.csv")
+        data = {
+            "image_id": [],
+            "gallery_img_list": []
+        }
 
+        for idx in tqdm(range(len(query_files))):
+            query_file = query_files[idx].split("/")[1]
+            predictions = gallery_files[perm_matrix[:, : 10][idx]]
+            predictions = [p.split("/")[1] for p in predictions]
+            data["image_id"].append(query_file)
+            data["gallery_img_list"].append(predictions)
 
-    # fold_predictions = predict_from_loader(model, loader)
-    # test_predictions.append(fold_predictions)
-
-    # # Ensemble predictions
-    # if hparams.test_hold_out:
-    #     holdout_predictons = torch.stack(holdout_predictons, dim=1)
-    #     classes = torch.tensor(classes)
-    #     # Apply averaging
-    #     # holdout_predictons = average_strategy(holdout_predictons)
-    #     holdout_predictons = holdout_predictons[:, 0]
-
-    #     AUC = roc_auc_score(classes.cpu().numpy(), holdout_predictons.cpu().numpy())
-    #     AP = average_precision_score(classes.cpu().numpy(), holdout_predictons.cpu().numpy())
-    #     print(f"{hparams.name}: AUC {AUC:0.5f}, AP {AP:0.5f}")
-
-        # Save to csv
-        # ...
-
-    # test_predictions = torch.stack(test_predictions, dim=1)
-    # test_predictions = average_strategy(test_predictions)
-    # test_predictions_binary = test_predictions > 0.5
-
-    # Save to csv
-    # df_data = {
-    # "image_name": image_names,
-    # "target": test_predictions_binary.type(torch.int)
-    # }
-    # df = pd.DataFrame(data=df_data)
-    # df.to_csv(os.path.join(hparams.output_path, f'{hparams.name}_test.csv'), index=None)
+        df = pd.DataFrame(data=data)
+        df["gallery_img_list"] = df["gallery_img_list"].apply(lambda x: '{{{}}}'.format(",".join(x))).astype(str)
+        lines = [f"{x},{y}" for x, y in zip(data["image_id"], df["gallery_img_list"])]
+        with open(hparams.config_path / "submission.csv", "w") as f:
+            for line in lines:
+                f.write(line + '\n')
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Huawei challenge",
     )
-
+    # General
     parser.add_argument(
         "--config_path", "-c", type=str, help="Path to folder with model config and checkpoint")
     parser.add_argument(
         "--output_path", type=str, default="data/processed", help="Path to save scores")
     parser.add_argument(
-        "--extract_embeddings", action="store_true", help="Extract and save embeddings for each image into DataFrame") 
+        "--extract_embeddings", action="store_true", help="Extract and save embeddings for each image into DataFrame")
     parser.add_argument(
-        "--test_validation", action="store_true", help="Flag to make prediction for validation and compute final score")
+        "--validation", action="store_true", help="Flag to make prediction for validation and compute final score")
     parser.add_argument(
-        "--test", action="store_true", help="Flag to predict test")       
+        "--test", action="store_true", help="Flag to predict test")
+
+    # Options
     parser.add_argument(
-        "--tta", default=False, action='store_true', help="Use TTA" )
+        "--dba", default=False, action='store_true', help="Use DBA")
+    parser.add_argument(
+        "--aqe", default=False, action='store_true', help="Use alpha query expansion")
+    parser.add_argument(
+        "--tta", default=False, action='store_true', help="Use TTA")
 
     hparams = parser.parse_args()
     print(f"Parameters used for test: {hparams}")
