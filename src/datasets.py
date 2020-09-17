@@ -183,7 +183,7 @@ class ClassificationDataset(torch.utils.data.Dataset):
                 W = size
                 H = int(size * ar) // 8 * 8
             self.sizes.append((H, W))
-            
+
         self.transform = albu.Compose([albu_pt.ToTensorV2()]) if transform is None else transform
 
     def __getitem__(self, index):
@@ -219,6 +219,7 @@ class TestDataset(torch.utils.data.Dataset):
     """
 
     _aspect_ratios = np.array([2, 16 / 9, 3 / 2, 4 / 3, 5 / 4, 1, 4 / 5, 3 / 4, 2 / 3, 9 / 16, 1 / 2])
+
     def __init__(self, root="data/interim", transform=None, size=512, test_type="A"):
         df = pd.read_csv(os.path.join(root, "test_A.csv"))
 
@@ -252,6 +253,7 @@ class TestDataset(torch.utils.data.Dataset):
             self.sizes.append((H, W))
 
         self.transform = albu.Compose([albu_pt.ToTensorV2()]) if transform is None else transform
+
     def __getitem__(self, index):
         """
         Args:

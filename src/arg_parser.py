@@ -31,7 +31,6 @@ def get_parser():
     add_arg("--model_params", type=eval, default={}, help="Additional model params as kwargs")
     add_arg("--ema_decay", type=float, default=0, help="Decay for ExponentialMoving Average")
 
-
     # Training
     add_arg("--use_fp16", default=False, action="store_true", help="Flag to enable FP16 training")
     add_arg("--optim", type=str, default="adamw", help="Optimizer to use (default: adamw)")

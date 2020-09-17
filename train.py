@@ -10,7 +10,7 @@ import pytorch_tools.fit_wrapper.callbacks as pt_clb
 from pytorch_tools.optim import optimizer_from_name
 
 from src.arg_parser import parse_args
-from src.datasets import get_dataloaders, get_val_dataloader
+from src.datasets import get_dataloaders
 from src.losses import LOSS_FROM_NAME
 from src.models import Model
 from src.callbacks import ContestMetricsCallback
@@ -49,7 +49,7 @@ def main():
 
     if hparams.resume:
         checkpoint = torch.load(hparams.resume, map_location=lambda storage, loc: storage.cuda())
-        model.load_state_dict(checkpoint["state_dict"], strict=False)
+        model.load_state_dict(checkpoint["state_dict"], strict=True)
 
     # Get optimizer
     optim_params = pt.utils.misc.filter_bn_from_wd(model)

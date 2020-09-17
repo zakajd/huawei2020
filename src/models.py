@@ -7,7 +7,8 @@ import torch
 import pytorch_tools as pt
 
 sys.path.append("/home/zakirov/repoz/GPU-Efficient-Networks/")
-import GENet
+import GENet  # noqa
+
 
 class Model(torch.nn.Module):
     """Model for query searches
@@ -54,11 +55,12 @@ class Model(torch.nn.Module):
         x = self.model(x)
         # Normalize features
         x = torch.nn.functional.normalize(x, p=2)
-        return x        
+        return x
 
 # --------------------------------------
 # Pooling layers
 # --------------------------------------
+
 
 class GeM(torch.nn.Module):
     """
@@ -73,6 +75,8 @@ class GeM(torch.nn.Module):
     def __init__(self, p=3, eps=1e-6):
         super().__init__()
         self.p = torch.nn.Parameter(torch.ones(1) * p)
+        # Parameter is fixed! Not learned
+        # self.p = torch.tensor(p, dtype=torch.float)
         self.eps = eps
 
     def forward(self, x):

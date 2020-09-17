@@ -2,7 +2,7 @@ import math
 import functools
 
 import torch
-from loguru import logger
+# from loguru import logger
 
 
 class AngularPenaltySMLoss(torch.nn.Module):
