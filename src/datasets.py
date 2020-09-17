@@ -41,21 +41,18 @@ def get_dataloaders(
     train_dataset = ClassificationDataset(
         root=root, transform=train_aug, train=True, val_pct=0.2, size=size)
 
-    # sampler = torch.nn.data.sampler.RandomSampler(train_dataset)
-    # gb_sampler = GroupedBatchSampler(
-    #     sampler=sampler,
-    #     group_ids=train_dataset.group_ids,
-    #     batch_size=batch_size,
-    #     drop_uneven=True,
-    # )
+    gb_sampler = GroupedBatchSampler(
+        sampler=torch.utils.data.sampler.RandomSampler(train_dataset),
+        group_ids=train_dataset.group_ids,
+        batch_size=batch_size,
+        drop_uneven=True,
+    )
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
-        batch_size=batch_size,
         num_workers=workers,
-        drop_last=True,
         pin_memory=True,
-        shuffle=True,
+        batch_sampler=gb_sampler,
     )
 
     train_loader = ToCudaLoader(train_loader)
@@ -83,20 +80,18 @@ def get_val_dataloader(
     val_dataset = ClassificationDataset(
         root=root, transform=aug, train=False, val_pct=val_pct, size=size)
 
-    # sampler = torch.nn.data.sampler.SequentialSampler(val_dataset)
-    # gb_sampler = GroupedBatchSampler(
-    #     sampler=sampler,
-    #     group_ids=val_dataset.group_ids,
-    #     batch_size=batch_size,
-    #     drop_uneven=False,
-    # )
+    gb_sampler = GroupedBatchSampler(
+        sampler=torch.utils.data.sampler.SequentialSampler(val_dataset),
+        group_ids=val_dataset.group_ids,
+        batch_size=batch_size,
+        drop_uneven=False,
+    )
 
     val_loader = torch.utils.data.DataLoader(
         val_dataset,
-        batch_size=batch_size,
         num_workers=workers,
         pin_memory=False,
-        shuffle=False,
+        batch_sampler=gb_sampler,
     )
 
     val_loader = ToCudaLoader(val_loader)
@@ -113,20 +108,18 @@ def get_test_dataloader(
 
     test_dataset = TestDataset(root=root, transform=aug, size=size)
 
-    # sampler = torch.nn.data.sampler.SequentialSampler(test_dataset)
-    # gb_sampler = GroupedBatchSampler(
-    #     sampler=sampler,
-    #     group_ids=val_dataset.group_ids,
-    #     batch_size=batch_size,
-    #     drop_uneven=False,
-    # )
+    gb_sampler = GroupedBatchSampler(
+        sampler=torch.utils.data.sampler.SequentialSampler(test_dataset),
+        group_ids=test_dataset.group_ids,
+        batch_size=batch_size,
+        drop_uneven=False,
+    )
 
     test_loader = torch.utils.data.DataLoader(
         test_dataset,
-        batch_size=batch_size,
         num_workers=workers,
         pin_memory=True,
-        shuffle=False,
+        batch_sampler=gb_sampler,
     )
 
     test_loader = ToCudaLoader(test_loader)
@@ -161,26 +154,37 @@ class ClassificationDataset(torch.utils.data.Dataset):
         assert map(lambda x: pathlib.Path(x).exists(), self.filenames), "Found missing images!"
 
         self.targets = df["label"].values.tolist()
-        # self.ar = df["aspect_ratio"].values
-        # self.is_query = df["is_query"].values.tolist()
+        self.ar = df["aspect_ratio"].values
+        self.is_query = df["is_query"].values.astype(np.bool)
 
         # Take `val_pct` of the data for validation
         # Use same data as for training, because tasks are different
         if not train:
             val_size = int(len(self.targets) * val_pct)
             self.filenames = self.filenames[: val_size]
-            # self.targets = self.targets[: val_size]
-            # self.ar = self.ar[: val_size]
+            self.targets = self.targets[: val_size]
+            self.ar = self.ar[: val_size]
 
         # For each aspect ration in `ar` find closest value from the
         # `_aspect_ratios` and return it's index (group)
-        # self.group_ids = np.argmin(
-        #     np.abs(self._aspect_ratios.reshape(1, -1) - self.ar.reshape(-1, 1)),
-        #     axis=1
-        # )
+        self.group_ids = np.argmin(
+            np.abs(self._aspect_ratios.reshape(1, -1) - self.ar.reshape(-1, 1)),
+            axis=1
+        )
 
+        self.sizes = []
+        for group in self.group_ids:
+            ar = self._aspect_ratios[group]
+            # Resize image to have `size` shape on smaller side and be devidable by 8 on another
+            if ar <= 1:
+                H = size
+                W = int(size / ar) // 8 * 8
+            else:
+                W = size
+                H = int(size * ar) // 8 * 8
+            self.sizes.append((H, W))
+            
         self.transform = albu.Compose([albu_pt.ToTensorV2()]) if transform is None else transform
-        # self.size = size
 
     def __getitem__(self, index):
         """
@@ -189,7 +193,11 @@ class ClassificationDataset(torch.utils.data.Dataset):
         Returns:
             tuple: (image, target) where target is index of the target class.
         """
+        # logger.info(f"Index {index}")
         image = cv2.imread(self.filenames[index], cv2.IMREAD_COLOR)
+        # logger.info(f"{index} Size before reshape {image.shape}")
+        image = cv2.resize(image, self.sizes[index])
+        # logger.info(f"{index} Size after reshape {image.shape}")
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = self.transform(image=image)["image"]
 
@@ -216,22 +224,34 @@ class TestDataset(torch.utils.data.Dataset):
 
         self.filenames = [
             os.path.join(root, f"test_data_A_{size}", path) for path in df["file_path"].values.tolist()]
-        self.is_query = df["is_query"].values
+        self.is_query = df["is_query"].values.astype(np.bool)
 
         # Сheck that all images exist
         assert map(lambda x: pathlib.Path(x).exists(), self.filenames), "Found missing images!"
 
-        # self.ar = df["aspect_ratio"].values
-        # For each aspect ration in `ar` find closest value from the
-        # `_aspect_ratios` and return it's index (group)
-        # self.group_ids = np.argmin(
-        #     np.abs(self._aspect_ratios.reshape(1, -1) - self.ar.reshape(-1, 1)),
-        #     axis=1
-        # )
-
-        self.transform = albu.Compose([albu_pt.ToTensorV2()]) if transform is None else transform
+        self.ar = df["aspect_ratio"].values
         self.size = size
 
+        # For each aspect ration in `ar` find closest value from the
+        # `_aspect_ratios` and return it's index (group)
+        self.group_ids = np.argmin(
+            np.abs(self._aspect_ratios.reshape(1, -1) - self.ar.reshape(-1, 1)),
+            axis=1
+        )
+
+        self.sizes = []
+        for group in self.group_ids:
+            ar = self._aspect_ratios[group]
+            # Resize image to have `size` shape on smaller side and be devidable by 8 on another
+            if ar <= 1:
+                H = size
+                W = int(size / ar) // 8 * 8
+            else:
+                W = size
+                H = int(size / ar) // 8 * 8
+            self.sizes.append((H, W))
+
+        self.transform = albu.Compose([albu_pt.ToTensorV2()]) if transform is None else transform
     def __getitem__(self, index):
         """
         Args:
@@ -240,16 +260,8 @@ class TestDataset(torch.utils.data.Dataset):
             tuple: (image, target) where target is index of the target class.
         """
         image = cv2.imread(self.filenames[index], cv2.IMREAD_COLOR)
+        image = cv2.resize(image, self.sizes[index])
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-        # # Resize image to have `size` shape on smaller side
-        # h, w = image.shape[:2]
-        # smaller_side = min(h, w)
-        # ratio = size / smaller_side
-        # resized = cv2.resize(image, (round(w * ratio), round(h * ratio)), interpolation=cv2.INTER_CUBIC)
-        
-        # img = cv2.resize(img, self.size_template[self.scale][gid])
-
         image = self.transform(image=image)["image"]
         return image
 
