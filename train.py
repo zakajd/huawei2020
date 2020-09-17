@@ -49,7 +49,7 @@ def main():
 
     if hparams.resume:
         checkpoint = torch.load(hparams.resume, map_location=lambda storage, loc: storage.cuda())
-        model.load_state_dict(checkpoint["state_dict"], strict=True)
+        model.load_state_dict(checkpoint["state_dict"], strict=False)
 
     # Get optimizer
     optim_params = pt.utils.misc.filter_bn_from_wd(model)

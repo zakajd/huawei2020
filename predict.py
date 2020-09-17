@@ -36,13 +36,14 @@ def query_expansion(query_embeddings, gallery_embeddings, top_k=10, alpha=3):
     topk_vals, topk_ind = distances.neg().topk(top_k, dim=1)
     # Get weight
     if alpha is None:
-        weight = torch.div(top_k - torch.arange(top_k), float(top_k))[None, :, None]  # N x TOPK x 1
+        # weight = torch.div(top_k - torch.arange(top_k), float(top_k))[None, :, None]  # N x TOPK x 1
+        weight = torch.div(top_k - torch.arange(top_k - 1) - 1, float(top_k))[None, :, None]  # N x TOPK x 1
     else:
         cosine_dist = (2 - topk_vals.neg()) * 0.5  # cos = ((2 - l2_distances) / 2)
         weight = (cosine_dist ** alpha)[..., None]  # N x TOPK -> N x TOPK x 1
 
-    new_embedding = query_embeddings[topk_ind] * weight  # N x TOPK x EMBED_SIZE * N x TOPK x 1
-    new_embedding = new_embedding.sum(dim=1)
+    new_embedding = gallery_embeddings[topk_ind] * weight  # N x TOPK x EMBED_SIZE * N x TOPK x 1
+    new_embedding = new_embedding.sum(dim=1) + query_embeddings
     # new_embedding = new_embedding.mean(dim=1)
     new_embedding = torch.nn.functional.normalize(new_embedding, p=2, dim=1)
     return new_embedding
@@ -146,10 +147,10 @@ def test(hparams):
         del val_embeddings
 
         if hparams.dba:
-            gallery_embeddings = query_expansion(gallery_embeddings, gallery_embeddings, topk=10, alpha=None)
+            gallery_embeddings = query_expansion(gallery_embeddings, gallery_embeddings, top_k=10, alpha=None)
 
         if hparams.aqe:
-            query_embeddings = query_expansion(query_embeddings, gallery_embeddings, topk=3, alpha=3)
+            query_embeddings = query_expansion(query_embeddings, gallery_embeddings, top_k=3, alpha=3)
 
         # Shape (query_size x gallery_size)
         conformity_matrix = torch.tensor(query_labels.reshape(-1, 1) == gallery_labels)
@@ -177,10 +178,10 @@ def test(hparams):
         del test_embeddings
 
         if hparams.dba:
-            gallery_embeddings = query_expansion(gallery_embeddings, gallery_embeddings, topk=10, alpha=None)
+            gallery_embeddings = query_expansion(gallery_embeddings, gallery_embeddings, top_k=10, alpha=None)
 
         if hparams.aqe:
-            query_embeddings = query_expansion(query_embeddings, gallery_embeddings, topk=3, alpha=3)
+            query_embeddings = query_expansion(query_embeddings, gallery_embeddings, top_k=3, alpha=3)
 
         # Matrix of pairwise cosin distances
         distances = torch.cdist(query_embeddings, gallery_embeddings)
@@ -202,7 +203,7 @@ def test(hparams):
         df = pd.DataFrame(data=data)
         df["gallery_img_list"] = df["gallery_img_list"].apply(lambda x: '{{{}}}'.format(",".join(x))).astype(str)
         lines = [f"{x},{y}" for x, y in zip(data["image_id"], df["gallery_img_list"])]
-        with open(hparams.config_path / "submission.csv", "w") as f:
+        with open(hparams.config_path / f"submission{'_dba' if hparams.dba else ''} {'_aqe' if hparams.aqe else ''}.csv", "w") as f:
             for line in lines:
                 f.write(line + '\n')
 
