@@ -7,7 +7,8 @@ import torch
 import pytorch_tools as pt
 from loguru import logger
 
-sys.path.append("/home/zakirov/repoz/GPU-Efficient-Networks/")
+# sys.path.append("/home/zakirov/repoz/GPU-Efficient-Networks/")
+sys.path.append("/raid/dzakirov/code/GPU-Efficient-Networks/")
 import GENet  # noqa
 
 
@@ -23,8 +24,8 @@ class Model(torch.nn.Module):
             self.model = GENet.genet_normal(
                 pretrained=True,
                 num_classes=1000,
-                # root="/home/zakirov/repoz/GPU-Efficient-Networks/GENet_params"
-                root="/raid/dzakirov/code/GPU-Efficient-Networks/GENet_params",
+                root="/home/zakirov/repoz/GPU-Efficient-Networks/GENet_params"
+                # root="/raid/dzakirov/code/GPU-Efficient-Networks/GENet_params",
             )
             self.model.fc_linear = torch.nn.Linear(in_features=2560, out_features=embedding_size)
             torch.nn.init.xavier_uniform_(self.model.fc_linear.weight)
