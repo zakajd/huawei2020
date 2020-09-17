@@ -5,6 +5,7 @@ https://github.com/lyakaap/Landmark2019-1st-and-3rd-Place-Solution/
 import sys
 import torch
 import pytorch_tools as pt
+from loguru import logger
 
 sys.path.append("/home/zakirov/repoz/GPU-Efficient-Networks/")
 import GENet  # noqa
@@ -74,13 +75,14 @@ class GeM(torch.nn.Module):
 
     def __init__(self, p=3, eps=1e-6):
         super().__init__()
-        self.p = torch.nn.Parameter(torch.ones(1) * p)
+        # self.p = torch.nn.Parameter(torch.ones(1) * p)
         # Parameter is fixed! Not learned
-        # self.p = torch.tensor(p, dtype=torch.float)
+        self.p = torch.tensor(p)
         self.eps = eps
 
     def forward(self, x):
-        return torch.nn.functional.adaptive_avg_pool2d(x.clamp(min=self.eps).pow(self.p), 1).pow(1. / self.p)
+        # logger.info(f"input {x.shape}, {x.dtype}. P {self.p.shape}, {self.p.dtype}")
+        return torch.nn.functional.adaptive_avg_pool2d(x.clamp(min=self.eps).pow(self.p.to(x)), 1).pow(1. / self.p.to(x))
 
 
 POOLING_FROM_NAME = {

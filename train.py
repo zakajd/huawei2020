@@ -98,12 +98,7 @@ def main():
         batch_size=hparams.batch_size,
         workers=hparams.workers,
     )
-
-    # for batch in train_loader:
-    #     images, targets = batch
-    #     output = model(images)
-    #     logger.info(f"Train batch images: {images.shape}, labels {targets.shape}, output {output.shape}")
-    #     return
+    logger.info(f"{hasattr(train_loader, 'batch_size')}, {train_loader.batch_size}, {val_loader.batch_size}")
 
     # Train
     for i, phase in enumerate(sheduler.phases):
