@@ -1,0 +1,42 @@
+[09-17 13:11] - Parameters used for training: Namespace(arch='genet_normal', augmentation='hard', batch_size=64, config_file='configs/tmp/genet_gem3.yaml', criterion='arcface', criterion_params={'out_features': 3097, 's': 64.0, 'm': 0.8}, debug=False, ema_decay=0.0, embedding_size=512, model_params={}, name='genet_512_arcface_gem_3_hard_ar', optim='adamw', outdir='logs/genet_512_arcface_gem_3_hard_ar', phases=[{'ep': [0, 30], 'lr': [0.1, 0.001]}, {'ep': [31, 50], 'lr': [0.001, 1e-05]}], pooling='gem', resume='', root='data/interim', seed=42, size=512, tta=False, use_fp16=True, val_frequency=1, val_size=768, weight_decay=1e-05, workers=6)
+[09-17 13:11] - Start training
+[09-17 13:11] - Model size: 19.89M
+[09-17 13:11] - Loss for this run is: AdditiveAngularMarginLoss(
+  (criterion): CrossEntropyLoss()
+)
+[09-17 13:11] - Val size: 20643
+[09-17 13:11] - Train size: 68811
+[09-17 13:11] - True, None, None
+[09-17 13:11] - Start phase #1 from epoch 0 to epoch 30: {'ep': [0, 30], 'lr': [0.1, 0.001], 'mom': [], 'mode': 'linear'}
+[09-17 13:11] - Epoch 1 | lr 0.00e+00
+[09-17 13:18] - 
+TimeMeter profiling. Data time: 7.13E-04s. Model time: 3.95E-01s 
+
+[09-17 13:21] - Train loss: 55.1063 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 13:21] - Val   loss: 54.6963 | Acc_@1: 0.0807 | mAP@10: 0.1183 | .5Acc+.5mAP: 0.0995 | CMC@10: 0.2628
+[09-17 13:21] - Epoch  1: best loss improved from inf to 54.6963
+[09-17 13:21] - Epoch 2 | lr 9.70e-02
+[09-17 13:33] - Train loss: 54.2087 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 13:33] - Val   loss: 53.9219 | Acc_@1: 0.3145 | mAP@10: 0.3535 | .5Acc+.5mAP: 0.3340 | CMC@10: 0.5797
+[09-17 13:33] - Epoch  2: best loss improved from 54.6963 to 53.9219
+[09-17 13:33] - Epoch 3 | lr 9.37e-02
+[09-17 13:44] - Train loss: 53.2748 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 13:44] - Val   loss: 53.3137 | Acc_@1: 0.4957 | mAP@10: 0.5200 | .5Acc+.5mAP: 0.5079 | CMC@10: 0.7384
+[09-17 13:44] - Epoch  3: best loss improved from 53.9219 to 53.3137
+[09-17 13:44] - Epoch 4 | lr 9.04e-02
+[09-17 13:57] - Train loss: 51.9540 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 13:57] - Val   loss: 52.4628 | Acc_@1: 0.6001 | mAP@10: 0.6138 | .5Acc+.5mAP: 0.6069 | CMC@10: 0.8053
+[09-17 13:57] - Epoch  4: best loss improved from 53.3137 to 52.4628
+[09-17 13:57] - Epoch 5 | lr 8.71e-02
+[09-17 14:09] - Train loss: 50.3370 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 14:09] - Val   loss: 51.3077 | Acc_@1: 0.6678 | mAP@10: 0.6703 | .5Acc+.5mAP: 0.6690 | CMC@10: 0.8447
+[09-17 14:09] - Epoch  5: best loss improved from 52.4628 to 51.3077
+[09-17 14:09] - Epoch 6 | lr 8.38e-02
+[09-17 14:23] - Train loss: 48.3737 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 14:23] - Val   loss: 49.6407 | Acc_@1: 0.7184 | mAP@10: 0.7139 | .5Acc+.5mAP: 0.7162 | CMC@10: 0.8677
+[09-17 14:23] - Epoch  6: best loss improved from 51.3077 to 49.6407
+[09-17 14:23] - Epoch 7 | lr 8.05e-02
+[09-17 14:36] - Train loss: 46.0128 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 14:36] - Val   loss: 47.6572 | Acc_@1: 0.7475 | mAP@10: 0.7411 | .5Acc+.5mAP: 0.7443 | CMC@10: 0.8833
+[09-17 14:36] - Epoch  7: best loss improved from 49.6407 to 47.6572
+[09-17 14:36] - Epoch 8 | lr 7.72e-02

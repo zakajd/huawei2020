@@ -175,13 +175,13 @@ class ClassificationDataset(torch.utils.data.Dataset):
         self.sizes = []
         for group in self.group_ids:
             ar = self._aspect_ratios[group]
-            # Resize image to have `size` shape on smaller side and be devidable by 8 on another
+            # Resize image to have `size` shape on smaller side and be devidable by 16 on another
             if ar <= 1:
                 H = size
-                W = int(size / ar) // 8 * 8
+                W = int(size / ar) // 16 * 16
             else:
                 W = size
-                H = int(size * ar) // 8 * 8
+                H = int(size * ar) // 16 * 16
             self.sizes.append((H, W))
 
         self.transform = albu.Compose([albu_pt.ToTensorV2()]) if transform is None else transform
@@ -246,10 +246,10 @@ class TestDataset(torch.utils.data.Dataset):
             # Resize image to have `size` shape on smaller side and be devidable by 8 on another
             if ar <= 1:
                 H = size
-                W = int(size / ar) // 8 * 8
+                W = int(size / ar) // 16 * 16
             else:
                 W = size
-                H = int(size / ar) // 8 * 8
+                H = int(size / ar) // 16 * 16
             self.sizes.append((H, W))
 
         self.transform = albu.Compose([albu_pt.ToTensorV2()]) if transform is None else transform

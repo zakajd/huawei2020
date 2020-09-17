@@ -1,0 +1,40 @@
+arch: genet_normal
+augmentation: hard
+batch_size: 64
+config_file: configs/tmp/genet_gem2.yaml
+criterion: arcface
+criterion_params:
+  m: 0.8
+  out_features: 3097
+  s: 64.0
+debug: false
+ema_decay: 0.0
+embedding_size: 512
+model_params: {}
+name: genet_512_arcface_gem_2_hard_ar
+optim: adamw
+outdir: logs/genet_512_arcface_gem_2_hard_ar
+phases:
+- ep:
+  - 0
+  - 30
+  lr:
+  - 0.1
+  - 0.001
+- ep:
+  - 31
+  - 50
+  lr:
+  - 0.001
+  - 1.0e-05
+pooling: gem
+resume: ''
+root: data/interim
+seed: 42
+size: 512
+tta: false
+use_fp16: true
+val_frequency: 1
+val_size: 768
+weight_decay: 1.0e-05
+workers: 6

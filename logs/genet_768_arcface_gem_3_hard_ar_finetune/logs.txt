@@ -1,0 +1,26 @@
+[09-17 13:24] - Parameters used for training: Namespace(arch='genet_normal', augmentation='hard', batch_size=32, config_file='configs/tmp/genet_gem.yaml', criterion='arcface', criterion_params={'out_features': 3097, 's': 64.0, 'm': 0.8}, debug=False, ema_decay=0.0, embedding_size=512, model_params={}, name='genet_768_arcface_gem_3_hard_ar_finetune', optim='adamw', outdir='logs/genet_768_arcface_gem_3_hard_ar_finetune', phases=[{'ep': [0, 20], 'lr': [0.01, 0.0001]}, {'ep': [20, 40], 'lr': [0.0001, 1e-05]}], pooling='gem', resume='logs/genet_normal_512_arcface_fp16_gem_hard_1/model.chpn', root='data/interim', seed=42, size=768, tta=False, use_fp16=True, val_frequency=1, val_size=768, weight_decay=1e-05, workers=10)
+[09-17 13:24] - Start training
+[09-17 13:24] - Model size: 19.89M
+[09-17 13:24] - Loss for this run is: AdditiveAngularMarginLoss(
+  (criterion): CrossEntropyLoss()
+)
+[09-17 13:24] - Val size: 20643
+[09-17 13:24] - Train size: 68811
+[09-17 13:24] - True, None, None
+[09-17 13:24] - Start phase #1 from epoch 0 to epoch 20: {'ep': [0, 20], 'lr': [0.01, 0.0001], 'mom': [], 'mode': 'linear'}
+[09-17 13:24] - Epoch 1 | lr 0.00e+00
+[09-17 13:40] - 
+TimeMeter profiling. Data time: 8.76E-04s. Model time: 4.45E-01s 
+
+[09-17 13:44] - Train loss: 28.6875 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 13:44] - Val   loss: 19.9021 | Acc_@1: 0.9628 | mAP@10: 0.9619 | .5Acc+.5mAP: 0.9624 | CMC@10: 0.9887
+[09-17 13:44] - Epoch  1: best loss improved from inf to 19.9021
+[09-17 13:44] - Epoch 2 | lr 9.54e-03
+[09-17 14:05] - Train loss: 20.1118 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 14:05] - Val   loss: 14.3291 | Acc_@1: 0.9690 | mAP@10: 0.9693 | .5Acc+.5mAP: 0.9692 | CMC@10: 0.9882
+[09-17 14:05] - Epoch  2: best loss improved from 19.9021 to 14.3291
+[09-17 14:05] - Epoch 3 | lr 9.05e-03
+[09-17 14:26] - Train loss: 16.0719 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 14:26] - Val   loss: 11.7987 | Acc_@1: 0.9762 | mAP@10: 0.9787 | .5Acc+.5mAP: 0.9775 | CMC@10: 0.9926
+[09-17 14:26] - Epoch  3: best loss improved from 14.3291 to 11.7987
+[09-17 14:26] - Epoch 4 | lr 8.55e-03
