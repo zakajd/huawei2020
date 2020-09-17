@@ -1,17 +1,18 @@
 
 # General
 name: debug
-# name: resnet50_384_arcface_fp16
+# name: bresnet50_384_arcface_fp16_gem_hard_ar
 seed: 42
 root: data/interim
-batch_size: 64
+batch_size: 96
 workers: 6
-augmentation: light
+augmentation: hard
 debug: true
 resume: ""
 
 # Model
-arch: resnet50
+arch: bresnet50
+pooling: gem
 model_params: {}
 embedding_size: 512
 ema_decay: 0.0
@@ -22,11 +23,12 @@ use_fp16: true
 weight_decay: 0.00001
 size: 384
 phases: [
-    {'ep':[0, 20], 'lr': [0.001,0.00001]}
+    {ep: [0, 30], lr: [0.1,0.001]},
+    {ep: [31, 50], lr: [0.001,0.00001]}
 ]
 
 criterion: arcface
-criterion_params: {out_features: 3097, s: 64.0, m: 0.3}
+criterion_params: {out_features: 3097, s: 64.0, m: 0.5}
 
 # Validation and testing
 val_size: 768

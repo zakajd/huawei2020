@@ -2,7 +2,7 @@ import torch
 import pytorch_tools as pt
 from torch.cuda import amp
 from sklearn.metrics import roc_auc_score, average_precision_score
-from loguru import logger
+# from loguru import logger
 # import numpy as np
 
 

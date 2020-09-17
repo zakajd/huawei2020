@@ -1,0 +1,35 @@
+
+# General
+# name: debug
+name: bresnet50_512_arcface_fp16_gem_hard_ar
+seed: 42
+root: data/interim
+batch_size: 96
+workers: 6
+augmentation: hard
+debug: false
+resume: ""
+
+# Model
+arch: bresnet50
+pooling: gem
+model_params: {}
+embedding_size: 512
+ema_decay: 0.0
+
+# Training
+optim: adamw
+use_fp16: true
+weight_decay: 0.00001
+size: 512
+phases: [
+    {ep: [0, 30], lr: [0.1,0.001]},
+    {ep: [31, 50], lr: [0.001,0.00001]}
+]
+
+criterion: arcface
+criterion_params: {out_features: 3097, s: 64.0, m: 0.5}
+
+# Validation and testing
+val_size: 768
+tta: false
