@@ -7,8 +7,8 @@ import torch
 import pytorch_tools as pt
 from loguru import logger
 
-# sys.path.append("/home/zakirov/repoz/GPU-Efficient-Networks/")
-sys.path.append("/raid/dzakirov/code/GPU-Efficient-Networks/")
+sys.path.append("/home/zakirov/repoz/GPU-Efficient-Networks/")
+# sys.path.append("/raid/dzakirov/code/GPU-Efficient-Networks/")
 import GENet  # noqa
 
 
@@ -20,7 +20,18 @@ class Model(torch.nn.Module):
     def __init__(self, arch='resnet50', embedding_size=512, pooling="avg", model_params={},):
         # All models return raw logits
         super().__init__()
-        if arch == 'genet_normal':
+        if arch == 'genet_large':
+            self.model = GENet.genet_large(
+                pretrained=True,
+                num_classes=1000,
+                root="/home/zakirov/repoz/GPU-Efficient-Networks/GENet_params"
+                # root="/raid/dzakirov/code/GPU-Efficient-Networks/GENet_params",
+            )
+            self.model.fc_linear = torch.nn.Linear(in_features=2560, out_features=embedding_size)
+            torch.nn.init.xavier_uniform_(self.model.fc_linear.weight)
+            self.model.adptive_avg_pool.netblock = POOLING_FROM_NAME[pooling]
+            self.forward = self.forward_genet
+        elif arch == 'genet_normal':
             self.model = GENet.genet_normal(
                 pretrained=True,
                 num_classes=1000,
@@ -28,6 +39,17 @@ class Model(torch.nn.Module):
                 # root="/raid/dzakirov/code/GPU-Efficient-Networks/GENet_params",
             )
             self.model.fc_linear = torch.nn.Linear(in_features=2560, out_features=embedding_size)
+            torch.nn.init.xavier_uniform_(self.model.fc_linear.weight)
+            self.model.adptive_avg_pool.netblock = POOLING_FROM_NAME[pooling]
+            self.forward = self.forward_genet
+        elif arch == "genet_small":
+            self.model = GENet.genet_small(
+                pretrained=True,
+                num_classes=1000,
+                root="/home/zakirov/repoz/GPU-Efficient-Networks/GENet_params"
+                # root="/raid/dzakirov/code/GPU-Efficient-Networks/GENet_params",
+            )
+            self.model.fc_linear = torch.nn.Linear(in_features=1920, out_features=embedding_size)
             torch.nn.init.xavier_uniform_(self.model.fc_linear.weight)
             self.model.adptive_avg_pool.netblock = POOLING_FROM_NAME[pooling]
             self.forward = self.forward_genet
@@ -45,7 +67,7 @@ class Model(torch.nn.Module):
         x = self.model.features(x)
         x = self.pooling(x)
         # Normalize before FC, so that it works as learned PCA
-        x = torch.nn.functional.normalize(x, p=2)
+        # x = torch.nn.functional.normalize(x, p=2)
         x = torch.flatten(x, 1)
         x = self.model.dropout(x)
         x = self.model.last_linear(x)
@@ -91,4 +113,6 @@ POOLING_FROM_NAME = {
     "max": torch.nn.AdaptiveMaxPool2d(1),
     "avg": torch.nn.AdaptiveAvgPool2d(1),
     "gem": GeM(p=3.0, eps=1e-6),
+    "gem2": GeM(p=2.0, eps=1e-6),
+    "gem25": GeM(p=2.5, eps=1e-6),
 }

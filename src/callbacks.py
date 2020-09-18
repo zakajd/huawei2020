@@ -33,26 +33,40 @@ def cmc_score_count(distances: torch.Tensor, conformity_matrix: torch.Tensor, to
     return k_mask.mean().item()
 
 
-def rank_map_score(distances: torch.Tensor, conformity_matrix: torch.Tensor, topk: int = 1) -> float:
-    """
-    Function to count mean Average Precision from distance matrix and conformity matrix.
+def map_at_k(distances: torch.Tensor, conformity_matrix: torch.Tensor, topk: int = 10) -> float:
+    """Compute mean Average Precision (mAP@k) from distance matrix and conformity matrix.
+    If topk parameter is None, returns mAP@R, see [1] for details.
 
     Args:
         distances: distance matrix shape of (n_embeddings_x, n_embeddings_y)
         conformity_matrix: binary matrix with 1 on same label pos
             and 0 otherwise
-        topk: number of top examples for AP counting
+        topk: number of top examples for AP counting.
 
     Returns:
         mAP@k score
+
+    Reference:
+        [1] A Metric Learning Reality Check
+            https://arxiv.org/pdf/2003.08505.pdf
     """
     perm_matrix = torch.argsort(distances)
     conformity_matrix = conformity_matrix.type(torch.double)
 
-    # Sort matrix and take first K columns
-    conformity_matrix = torch.gather(conformity_matrix, 1, perm_matrix)[:, :topk]
+    if topk is None:  # Compute mAP@R
+        # Total total number of references that are the same class as the query.
+        R = conformity_matrix.sum(dim=1)
+        R_max = int(R.max())
+    else:  # Compute mAP@k
+        R = torch.ones(distances.size(0)) * topk
+        R_max = topk
 
-    precision = torch.cumsum(conformity_matrix, dim=-1) * conformity_matrix / torch.arange(start=1, end=topk + 1)
+    R_mask = torch.cumsum(torch.ones((distances.size(0), R_max)), dim=1) <= R.reshape(-1, 1)
+
+    # Sort matrix
+    conformity_matrix = torch.gather(conformity_matrix, 1, perm_matrix)[:, :R_max] * R_mask
+    precision = torch.cumsum(conformity_matrix, dim=-1) * conformity_matrix \
+        / torch.arange(start=1, end=R_max + 1)
     average_precision = precision.sum(dim=-1) / conformity_matrix.sum(dim=-1)
 
     # If no match found at first k elements, AP is 0
@@ -88,17 +102,18 @@ def cmc_score(
 class ContestMetricsCallback(pt.fit_wrapper.callbacks.Callback):
     """
     Compute Accuracy@1 and mAP@10 for query search results after running full loader
+    Args:
+        is_query: Binary mask to identify query embeddings
     """
 
-    def __init__(self):
+    def __init__(self, is_query=None):
         super().__init__()
 
-        self.metric_names = ["Acc_@1", "mAP@10", "target", "CMC@10"]
+        self.metric_names = ["Acc@1", "mAP@10", "target", "mAP@R"]
         self.target = None
         self.output = None
-
-        self.query_mask = None
-        self.query_created = False
+        assert is_query is not None, "Empty query mask"
+        self.is_query = is_query
 
     def on_begin(self):
         for name in self.metric_names:
@@ -121,20 +136,18 @@ class ContestMetricsCallback(pt.fit_wrapper.callbacks.Callback):
             target = torch.cat(self.target)
             output = torch.cat(self.output)
 
-            if not self.query_created:
-                # Create random bitmask. 20% of the data usd as a query
-                self.query_mask = torch.FloatTensor(len(target)).uniform_() > 0.8
-                self.query_created = True
-
             # Shape (n_embeddings, embedding_dim).  No TTA
-            query_embeddings = output[self.query_mask]
-            gallery_embeddings = output[~self.query_mask]
+            assert len(self.is_query) == len(output), \
+                f"Length of embeddings and query mask mismatch! {len(self.is_query)}, {len(output)}"
+            query_embeddings = output[self.is_query]
+            gallery_embeddings = output[~self.is_query]
 
-            query_labels = target[self.query_mask]
-            gallery_labels = target[~self.query_mask]
+            query_labels = target[self.is_query]
+            gallery_labels = target[~self.is_query]
             # logger.info(f"Query: {query_embeddings.shape} {query_embeddings.type()}, query labels: {query_labels.shape} {query_labels.type()}")
             # logger.info(f"gallery: {gallery_embeddings.shape} {gallery_embeddings.type()}, query labels: {gallery_labels.shape} {gallery_labels.type()}")
             # logger.info(f"Use fp16: {self.state.use_fp16}")
+
             # Shape (query_size x gallery_size)
             conformity_matrix = query_labels.reshape(-1, 1) == gallery_labels
 
@@ -142,11 +155,11 @@ class ContestMetricsCallback(pt.fit_wrapper.callbacks.Callback):
             distances = torch.cdist(query_embeddings, gallery_embeddings)
 
             acc1 = cmc_score_count(distances, conformity_matrix, topk=1)
-            cmc10 = cmc_score_count(distances, conformity_matrix, topk=10)
-            map10 = rank_map_score(distances, conformity_matrix, topk=10)
+            map10 = map_at_k(distances, conformity_matrix, topk=10)
             target_metric = 0.5 * acc1 + 0.5 * map10
+            mapR = map_at_k(distances, conformity_matrix, topk=None)
 
-            self.metrics = [acc1, map10, target_metric, cmc10]
+            self.metrics = [acc1, map10, target_metric, mapR]
 
             for metric, name in zip(self.metrics, self.metric_names):
                 self.state.metric_meters[name].update(metric)

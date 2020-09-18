@@ -144,7 +144,7 @@ def main(hparams):
     sizes = [str(x[0]) for x in sorted(result, key=lambda x: x[1])]
     df["original_size"] = sizes
     df["aspect_ratio"] = [round(x[0][0] / x[0][1], 4) for x in sorted(result, key=lambda x: x[1])]
-    
+
     # Take `val_pct` of labels for validation
     unique_labels = np.unique(labels)
     val_labels = unique_labels[:int(len(unique_labels) * hparams.val_pct)]

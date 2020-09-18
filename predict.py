@@ -16,28 +16,28 @@ from tqdm import tqdm
 from loguru import logger
 
 from src.datasets import get_val_dataloader, get_test_dataloader
-from src.callbacks import cmc_score_count, rank_map_score
+from src.callbacks import cmc_score_count, map_at_k
 from src.models import Model
 
 
-def query_expansion(query_embeddings, gallery_embeddings, top_k=10, alpha=3):
+def query_expansion(query_embeddings, gallery_embeddings, topk=10, alpha=3):
     """
     Implementation of Data Base Augmentation / Alpha Query Expansion
     Args:
         query_embeddings (Tensor): Shape (N, embedding_dim)
         gallery_embeddings (Tensor): Shape (M, embedding_dim)
-        top_k (int): How many neighbours to use
+        topk (int): How many neighbours to use
         alpha (int): Power for neighbours reweighting
         include_self (bool): Flag to include original embed in new one
     """
     # Matrix of pairwise cosin distances
     distances = torch.cdist(query_embeddings, gallery_embeddings)
     # Nearest neighbours
-    topk_vals, topk_ind = distances.neg().topk(top_k, dim=1)
+    topk_vals, topk_ind = distances.neg().topk(topk, dim=1)
     # Get weight
     if alpha is None:
-        # weight = torch.div(top_k - torch.arange(top_k), float(top_k))[None, :, None]  # N x TOPK x 1
-        weight = torch.div(top_k - torch.arange(top_k - 1) - 1, float(top_k))[None, :, None]  # N x TOPK x 1
+        # weight = torch.div(topk - torch.arange(topk), float(topk))[None, :, None]  # N x TOPK x 1
+        weight = torch.div(topk - torch.arange(topk - 1) - 1, float(topk))[None, :, None]  # N x TOPK x 1
     else:
         cosine_dist = (2 - topk_vals.neg()) * 0.5  # cos = ((2 - l2_distances) / 2)
         weight = (cosine_dist ** alpha)[..., None]  # N x TOPK -> N x TOPK x 1
@@ -97,16 +97,20 @@ def test(hparams):
     # -------------- Get embeddings for val and test data --------------
     if hparams.extract_embeddings:
         if hparams.validation:
-            loader, _ = get_val_dataloader(
+            loader, indexes = get_val_dataloader(
                 root=hparams.root,
                 augmentation="val",
                 batch_size=hparams.batch_size,
-                size=hparams.size,
+                size=hparams.val_size,
                 workers=hparams.workers,
             )
 
-            val_embeddings = predict_from_loader(model, loader)
+            # Load validation query / gallery split and sort it according to indexes from sampler
             df_val = pd.read_csv(os.path.join(hparams.root, "train_val.csv"))
+            df_val = df_val[df_val["is_train"].astype(np.bool) == False].iloc[indexes]
+
+            val_embeddings = predict_from_loader(model, loader)
+
             # Hack to save torch.Tensor into pd.DataFrame
             df_val["embeddings"] = list(map(lambda r: np.array(r).tolist(), val_embeddings))
             # Save results into folder with logs
@@ -115,17 +119,20 @@ def test(hparams):
             logger.info("Finished extracting validation embeddings")
 
         if hparams.test:
-            loader, _ = get_test_dataloader(
+            loader, indexes = get_test_dataloader(
                 root=hparams.root,
                 augmentation="test",
                 batch_size=hparams.batch_size,
-                size=hparams.size,
+                size=hparams.val_size,
                 workers=hparams.workers,
             )
+            # Load test DF and sort it according to indexes from sampler
+            df_test = pd.read_csv(os.path.join(hparams.root, "test_A.csv")).iloc[indexes]
             test_embeddings = predict_from_loader(model, loader)
-            df_test = pd.read_csv(os.path.join(hparams.root, "test_A.csv"))
+
             # Hack to save torch.Tensor into pd.DataFrame
             df_test["embeddings"] = list(map(lambda r: np.array(r).tolist(), test_embeddings))
+
             # Save results into folder with logs
             df_test.to_csv(hparams.config_path / "test_A.csv", index=None)
             del test_embeddings
@@ -146,10 +153,10 @@ def test(hparams):
         del val_embeddings
 
         if hparams.dba:
-            gallery_embeddings = query_expansion(gallery_embeddings, gallery_embeddings, top_k=10, alpha=None)
+            gallery_embeddings = query_expansion(gallery_embeddings, gallery_embeddings, topk=10, alpha=None)
 
         if hparams.aqe:
-            query_embeddings = query_expansion(query_embeddings, gallery_embeddings, top_k=3, alpha=3)
+            query_embeddings = query_expansion(query_embeddings, gallery_embeddings, topk=3, alpha=3)
 
         # Shape (query_size x gallery_size)
         conformity_matrix = torch.tensor(query_labels.reshape(-1, 1) == gallery_labels)
@@ -158,10 +165,11 @@ def test(hparams):
         distances = torch.cdist(query_embeddings, gallery_embeddings)
 
         acc1 = cmc_score_count(distances, conformity_matrix, topk=1)
-        map10 = rank_map_score(distances, conformity_matrix, topk=10)
+        map10 = map_at_k(distances, conformity_matrix, topk=10)
+        mapR = map_at_k(distances, conformity_matrix, topk=None)
 
         logger.info(
-            f"Val: Acc@1 {acc1:0.5f}, mAP@10 {map10:0.5f}, Target {0.5 * acc1 + 0.5 * map10:0.5f}")
+            f"Val: Acc@1 {acc1:0.5f}, mAP@10 {map10:0.5f}, Target {0.5 * acc1 + 0.5 * map10:0.5f}, mAP@R {mapR:0.5f}")
 
     # -------------- Predict on  test dataset  --------------
     if hparams.test:
@@ -177,10 +185,10 @@ def test(hparams):
         del test_embeddings
 
         if hparams.dba:
-            gallery_embeddings = query_expansion(gallery_embeddings, gallery_embeddings, top_k=10, alpha=None)
+            gallery_embeddings = query_expansion(gallery_embeddings, gallery_embeddings, topk=10, alpha=None)
 
         if hparams.aqe:
-            query_embeddings = query_expansion(query_embeddings, gallery_embeddings, top_k=3, alpha=3)
+            query_embeddings = query_expansion(query_embeddings, gallery_embeddings, topk=3, alpha=3)
 
         # Matrix of pairwise cosin distances
         distances = torch.cdist(query_embeddings, gallery_embeddings)
@@ -202,7 +210,7 @@ def test(hparams):
         df = pd.DataFrame(data=data)
         df["gallery_img_list"] = df["gallery_img_list"].apply(lambda x: '{{{}}}'.format(",".join(x))).astype(str)
         lines = [f"{x},{y}" for x, y in zip(data["image_id"], df["gallery_img_list"])]
-        with open(hparams.config_path / f"submission{'_dba' if hparams.dba else ''} {'_aqe' if hparams.aqe else ''}.csv", "w") as f:
+        with open(hparams.config_path / f"submission{'_dba' if hparams.dba else ''}{'_aqe' if hparams.aqe else ''}.csv", "w") as f:
             for line in lines:
                 f.write(line + '\n')
 

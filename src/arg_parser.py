@@ -30,6 +30,7 @@ def get_parser():
     add_arg("--pooling", type=str, default="max", help="Pooling used after last feature map")
     add_arg("--model_params", type=eval, default={}, help="Additional model params as kwargs")
     add_arg("--ema_decay", type=float, default=0, help="Decay for ExponentialMoving Average")
+    add_arg("--freeze_bn", default=False, action="store_true", help="Make Batch Norm layer not learnable")
 
     # Training
     add_arg("--use_fp16", default=False, action="store_true", help="Flag to enable FP16 training")

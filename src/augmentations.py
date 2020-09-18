@@ -30,7 +30,7 @@ def get_aug(aug_type="val", size=512):
 
     LIGHT_AUG = albu.Compose(
         [
-            albu.Flip(), 
+            albu.Flip(),
             albu.Cutout(num_holes=12, max_h_size=size // 16, max_w_size=size // 16, fill_value=0, p=0.5),
             NORM_TO_TENSOR
         ],

@@ -19,7 +19,7 @@ def get_dataloaders(
     augmentation="light",
     batch_size=8,
     size=512,
-    val_size=512,
+    val_size=768,
     workers=6,
 ):
     """
@@ -27,11 +27,13 @@ def get_dataloaders(
         root (str): Path to folder with data
         aumentation (str): Type of aug defined in `src.data.augmentations.py`
         batch_size (int): Number of images in stack
-        size (int): Crop size to take from original image for testing
-        val_size (int): Crop size to take from original image for validation
+        size (int): Size of images used for training
+        val_size (int): Size of images used for validation
         workers (int): Number of CPU threads used to load images
     Returns:
-        train_dataloader, val_dataloader
+        train_dataloader
+        val_dataloader
+        val_indexes (list): Order in which indexes are sampled from validation dataset
     """
 
     # Get augmentations
@@ -57,7 +59,7 @@ def get_dataloaders(
 
     train_loader = ToCudaLoader(train_loader)
 
-    val_loader, _ = get_val_dataloader(
+    val_loader, val_indexes = get_val_dataloader(
         root,
         augmentation="val",
         batch_size=batch_size,
@@ -66,18 +68,20 @@ def get_dataloaders(
     )
 
     logger.info(f"Train size: {len(train_dataset)}")
-    return train_loader, val_loader
+    return train_loader, val_loader, val_indexes
 
 
 def get_val_dataloader(
-        root="data/raw", augmentation="val", batch_size=8, size=512, workers=6):
+        root="data/interim", augmentation="val", batch_size=8, size=768, workers=6):
     """
-    Returns only validation dataloader
+    Returns:
+        val_loader (DataLoader)
+        indexes (list): Order in which indexes are sampled from dataset
     """
-    aug = get_aug(augmentation, size=size)
+    val_aug = get_aug(augmentation, size=size)
 
     val_dataset = ClassificationDataset(
-        root=root, transform=aug, train=False, size=size)
+        root=root, transform=val_aug, train=False, size=size)
 
     gb_sampler = GroupedBatchSampler(
         sampler=torch.utils.data.sampler.SequentialSampler(val_dataset),
@@ -95,13 +99,17 @@ def get_val_dataloader(
 
     val_loader = ToCudaLoader(val_loader)
     logger.info(f"Val size: {len(val_dataset)}")
-    return val_loader, torch.tensor(val_dataset.targets)
+    # GB sampler changes the order of images depending on batch size
+    indexes = [idx for batch in list(gb_sampler) for idx in batch]
+    return val_loader, indexes
 
 
 def get_test_dataloader(
         root="data/interim", augmentation="test", batch_size=8, size=512, workers=6):
     """
-    Returns only test dataloader
+    Returns:
+        test_loader (DataLoader)
+        indexes (list): Order in which indexes are sampled from dataset
     """
     aug = get_aug(augmentation, size=size)
 
@@ -123,7 +131,9 @@ def get_test_dataloader(
 
     test_loader = ToCudaLoader(test_loader)
     logger.info(f"Test size: {len(test_dataset)}")
-    return test_loader, torch.tensor(test_dataset.is_query)
+    # GB sampler changes the order of images depending on batch size
+    indexes = [idx for batch in list(gb_sampler) for idx in batch]
+    return test_loader, indexes
 
 
 class ClassificationDataset(torch.utils.data.Dataset):
@@ -153,7 +163,6 @@ class ClassificationDataset(torch.utils.data.Dataset):
 
         self.targets = df["label"].values.tolist()
         self.ar = df["aspect_ratio"].values
-        self.is_query = df["is_query"].values.astype(np.bool)
 
         # For each aspect ration in `ar` find closest value from the
         # `_aspect_ratios` and return it's index (group)
@@ -168,10 +177,10 @@ class ClassificationDataset(torch.utils.data.Dataset):
             # Resize image to have `size` shape on smaller side and be devidable by 16 on another
             if ar <= 1:
                 H = size
-                W = int(size / ar) // 16 * 16
+                W = int(size / ar) // 8 * 8
             else:
                 W = size
-                H = int(size * ar) // 16 * 16
+                H = int(size * ar) // 8 * 8
             self.sizes.append((H, W))
 
         self.transform = albu.Compose([albu_pt.ToTensorV2()]) if transform is None else transform
@@ -215,7 +224,6 @@ class TestDataset(torch.utils.data.Dataset):
 
         self.filenames = [
             os.path.join(root, f"test_data_A_{size}", path) for path in df["file_path"].values.tolist()]
-        self.is_query = df["is_query"].values.astype(np.bool)
 
         # Сheck that all images exist
         assert map(lambda x: pathlib.Path(x).exists(), self.filenames), "Found missing images!"
@@ -236,10 +244,10 @@ class TestDataset(torch.utils.data.Dataset):
             # Resize image to have `size` shape on smaller side and be devidable by 8 on another
             if ar <= 1:
                 H = size
-                W = int(size / ar) // 16 * 16
+                W = int(size / ar) // 8 * 8
             else:
                 W = size
-                H = int(size / ar) // 16 * 16
+                H = int(size / ar) // 8 * 8
             self.sizes.append((H, W))
 
         self.transform = albu.Compose([albu_pt.ToTensorV2()]) if transform is None else transform

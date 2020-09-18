@@ -5,6 +5,8 @@ import time
 
 import torch
 from loguru import logger
+import pandas as pd
+import numpy as np
 import pytorch_tools as pt
 import pytorch_tools.fit_wrapper.callbacks as pt_clb
 from pytorch_tools.optim import optimizer_from_name
@@ -14,7 +16,7 @@ from src.datasets import get_dataloaders
 from src.losses import LOSS_FROM_NAME
 from src.models import Model
 from src.callbacks import ContestMetricsCallback
-# ContestMetricsCallback
+from src.utils import freeze_batch_norm
 
 
 def main():
@@ -38,8 +40,6 @@ def main():
     os.makedirs(hparams.outdir, exist_ok=True)
     yaml.dump(vars(hparams), open(hparams.outdir + "/config.yaml", "w"))
 
-    logger.info(f"Start training")
-
     # Get model
     model = Model(
         arch=hparams.arch,
@@ -49,7 +49,10 @@ def main():
 
     if hparams.resume:
         checkpoint = torch.load(hparams.resume, map_location=lambda storage, loc: storage.cuda())
-        model.load_state_dict(checkpoint["state_dict"], strict=False)
+        model.load_state_dict(checkpoint["state_dict"], strict=True)
+
+    if hparams.freeze_bn:
+        freeze_batch_norm(model)
 
     # Get optimizer
     optim_params = pt.utils.misc.filter_bn_from_wd(model)
@@ -69,29 +72,8 @@ def main():
     # Save logs
     TB_callback = pt_clb.TensorBoard(hparams.outdir, log_every=20)
 
-    # Init runner
-    runner = pt.fit_wrapper.Runner(
-        model,
-        optimizer,
-        criterion=loss,
-        callbacks=[
-            # pt_clb.BatchMetrics([pt.metrics.Accuracy(topk=1)]),
-            ContestMetricsCallback(),
-            pt_clb.Timer(),
-            pt_clb.ConsoleLogger(),
-            pt_clb.FileLogger(),
-            TB_callback,
-            pt_clb.CheckpointSaver(hparams.outdir, save_name="model.chpn", monitor="target", mode="max"),
-            pt_clb.CheckpointSaver(hparams.outdir, save_name="model_loss.chpn", monitor="loss"),
-            sheduler,
-            # EMA must go after other checkpoints
-            pt_clb.ModelEma(model, hparams.ema_decay) if hparams.ema_decay else pt_clb.Callback(),
-        ],
-        use_fp16=hparams.use_fp16,  # use mixed precision by default.  # hparams.opt_level != "O0",
-    )
-
     # Get dataloaders
-    train_loader, val_loader = get_dataloaders(
+    train_loader, val_loader, val_indexes = get_dataloaders(
         root=hparams.root,
         augmentation=hparams.augmentation,
         size=hparams.size,
@@ -99,7 +81,33 @@ def main():
         batch_size=hparams.batch_size,
         workers=hparams.workers,
     )
-    logger.info(f"{hasattr(train_loader, 'batch_size')}, {train_loader.batch_size}, {val_loader.batch_size}")
+
+    # Load validation query / gallery split and resort it according to indexes from sampler
+    df_val = pd.read_csv(os.path.join(hparams.root, "train_val.csv"))
+    df_val = df_val[df_val["is_train"].astype(np.bool) == False]
+    val_is_query = df_val.is_query.values[val_indexes].astype(np.bool)
+
+    logger.info(f"Start training")
+    # Init runner
+    runner = pt.fit_wrapper.Runner(
+        model,
+        optimizer,
+        criterion=loss,
+        callbacks=[
+            # pt_clb.BatchMetrics([pt.metrics.Accuracy(topk=1)]),
+            ContestMetricsCallback(is_query=val_is_query[: 320] if hparams.debug else val_is_query),
+            pt_clb.Timer(),
+            pt_clb.ConsoleLogger(),
+            pt_clb.FileLogger(),
+            TB_callback,
+            pt_clb.CheckpointSaver(hparams.outdir, save_name="model.chpn", monitor="target", mode="max"),
+            pt_clb.CheckpointSaver(hparams.outdir, save_name="model_mapr.chpn", monitor="mAP@R", mode="max"),
+            sheduler,
+            # EMA must go after other checkpoints
+            pt_clb.ModelEma(model, hparams.ema_decay) if hparams.ema_decay else pt_clb.Callback(),
+        ],
+        use_fp16=hparams.use_fp16,  # use mixed precision by default.  # hparams.opt_level != "O0",
+    )
 
     # Train
     for i, phase in enumerate(sheduler.phases):
@@ -117,23 +125,32 @@ def main():
 
         logger.info(f"Loading best model from previous phase")
         checkpoint = torch.load(os.path.join(hparams.outdir, f"model.chpn"))
-        model.load_state_dict(checkpoint["state_dict"])
+        model.load_state_dict(checkpoint["state_dict"], strict=True)
+
+    # Evaluate
+    loss, [acc1, map10, target, mapR] = runner.evaluate(
+        val_loader,
+        steps=20 if hparams.debug else None,
+    )
+
+    logger.info(
+        f"Val: Acc@1 {acc1:0.5f}, mAP@10 {map10:0.5f}, Target {target}, mAP@R {mapR:0.5f}")
 
     # Save params used for training and final metrics into separate TensorBoard file
-    # metric_dict = {
-    #     "hparam/accuracy": np.mean(fold_metrics["accuracy"]),
-    #     "hparam/roc_auc": np.mean(fold_metrics["roc_auc"]),
-    #     "hparam/average_precision": float(np.mean(fold_metrics["average_precision"])),
-    # }
+    metric_dict = {
+        "hparam/Acc@1": acc1,
+        "hparam/mAP@10": map10,
+        "hparam/mAP@R": target,
+        "hparam/Target": mapR,
+    }
 
-    # hparams.config_file = str(hparams.config_file)
-    # hparams.phases = str(hparams.phases)
-    # hparams.folds = str(hparams.folds)
-    # hparams.datasets = str(hparams.datasets)
-    # hparams.model_params = str(hparams.model_params)
+    # Convert all lists / dicts to avoid TB error
+    hparams.phases = str(hparams.phases)
+    hparams.model_params = str(hparams.model_params)
+    hparams.criterion_params = str(hparams.criterion_params)
 
-    # with SummaryWriter(hparams.outdir) as writer:
-    #     writer.add_hparams(hparam_dict=vars(hparams), metric_dict=metric_dict)
+    with pt.utils.tensorboard.CorrectedSummaryWriter(hparams.outdir) as writer:
+        writer.add_hparams(hparam_dict=vars(hparams), metric_dict=metric_dict)
 
 
 if __name__ == "__main__":
