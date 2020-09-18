@@ -1,7 +1,7 @@
 
 # General
 # name: debug
-name: genet_512_arcface_gem_2_hard_ar
+name: genet_512_arcface_gem_2_hard_ar_val
 seed: 42
 root: data/interim
 batch_size: 64
