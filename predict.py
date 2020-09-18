@@ -37,15 +37,16 @@ def query_expansion(query_embeddings, gallery_embeddings, topk=10, alpha=3):
     # Get weight
     if alpha is None:
         # weight = torch.div(topk - torch.arange(topk), float(topk))[None, :, None]  # N x TOPK x 1
-        weight = torch.div(topk - torch.arange(topk - 1) - 1, float(topk))[None, :, None]  # N x TOPK x 1
+        weight = torch.div(topk - torch.arange(topk) - 1, float(topk))[None, :, None]  # N x TOPK x 1
     else:
         cosine_dist = (2 - topk_vals.neg()) * 0.5  # cos = ((2 - l2_distances) / 2)
         weight = (cosine_dist ** alpha)[..., None]  # N x TOPK -> N x TOPK x 1
 
     new_embedding = gallery_embeddings[topk_ind] * weight  # N x TOPK x EMBED_SIZE * N x TOPK x 1
     new_embedding = new_embedding.sum(dim=1) + query_embeddings
-    # new_embedding = new_embedding.mean(dim=1)
+    # new_embedding = (new_embedding.mean(dim=1) + query_embeddings) / 2
     new_embedding = torch.nn.functional.normalize(new_embedding, p=2, dim=1)
+    # new_embedding = torch.nn.functional.normalize(new_embedding, p=2, dim=1)
     return new_embedding
 
 
@@ -60,7 +61,7 @@ def predict_from_loader(model, loader):
         labels: Class labels for each image
     """
     # TODO: Add TTA here with rescaling?
-
+    model.eval()
     embeddings = []
     for batch in tqdm(loader):
         if isinstance(batch, list):
@@ -194,7 +195,7 @@ def test(hparams):
         distances = torch.cdist(query_embeddings, gallery_embeddings)
         perm_matrix = torch.argsort(distances)
 
-        logger.info(f"Creating submission.csv")
+        logger.info(f"Creating submission{'_dba' if hparams.dba else ''}{'_aqe' if hparams.aqe else ''}.csv")
         data = {
             "image_id": [],
             "gallery_img_list": []

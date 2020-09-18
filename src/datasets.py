@@ -183,6 +183,7 @@ class ClassificationDataset(torch.utils.data.Dataset):
                 H = int(size * ar) // 8 * 8
             self.sizes.append((H, W))
 
+        logger.info(f"Using sizes {set(self.sizes)} for {'train'if train else 'validation'}")
         self.transform = albu.Compose([albu_pt.ToTensorV2()]) if transform is None else transform
 
     def __getitem__(self, index):

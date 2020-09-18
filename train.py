@@ -134,7 +134,7 @@ def main():
     )
 
     logger.info(
-        f"Val: Acc@1 {acc1:0.5f}, mAP@10 {map10:0.5f}, Target {target}, mAP@R {mapR:0.5f}")
+        f"Val: Acc@1 {acc1:0.5f}, mAP@10 {map10:0.5f}, Target {target:0.5f}, mAP@R {mapR:0.5f}")
 
     # Save params used for training and final metrics into separate TensorBoard file
     metric_dict = {

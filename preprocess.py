@@ -77,6 +77,19 @@ def get_sizes(filenames):
     return result
 
 
+def get_single_hash(filename):
+    """Returns: Tuple[hash, filename]"""
+    with open(filename, "rb") as f:
+        return md5(f.read()).hexdigest(), filename
+
+
+def get_hash(filenames):
+    """Returns list of hashes for files in filenames"""
+    with multiprocessing.Pool(NUM_THREADS) as pool:
+        result = list(tqdm(pool.imap(get_single_hash, filenames), total=len(filenames)))
+    return result
+
+
 def main(hparams):
     hparams.root = pathlib.Path(hparams.root)
     hparams.output_path = pathlib.Path(hparams.output_path)
@@ -91,6 +104,7 @@ def main(hparams):
         filenames.append(file)
         labels.append(int(label))
 
+    # Remove duplicates and 
     train_filenames = [hparams.root / "train_data" / file for file in filenames]
 
     test_A_query_files = sorted((hparams.root / "test_data_A" / "query").glob("*.jpg"))
@@ -131,7 +145,7 @@ def main(hparams):
 
     logger.info("Creating DF with additional metadata")
 
-    # # Train
+    # Train
     df_data = {
         "file_path": filenames,
         "label": labels,
