@@ -39,7 +39,7 @@ def get_dataloaders(
 
     # Get datasets
     train_dataset = ClassificationDataset(
-        root=root, transform=train_aug, train=True, val_pct=0.2, size=size)
+        root=root, transform=train_aug, train=True, size=size)
 
     gb_sampler = GroupedBatchSampler(
         sampler=torch.utils.data.sampler.RandomSampler(train_dataset),
@@ -63,7 +63,6 @@ def get_dataloaders(
         batch_size=batch_size,
         size=val_size,
         workers=workers,
-        val_pct=0.3,
     )
 
     logger.info(f"Train size: {len(train_dataset)}")
@@ -71,14 +70,14 @@ def get_dataloaders(
 
 
 def get_val_dataloader(
-        root="data/raw", augmentation="val", batch_size=8, size=512, workers=6, val_pct=0.2):
+        root="data/raw", augmentation="val", batch_size=8, size=512, workers=6):
     """
     Returns only validation dataloader
     """
     aug = get_aug(augmentation, size=size)
 
     val_dataset = ClassificationDataset(
-        root=root, transform=aug, train=False, val_pct=val_pct, size=size)
+        root=root, transform=aug, train=False, size=size)
 
     gb_sampler = GroupedBatchSampler(
         sampler=torch.utils.data.sampler.SequentialSampler(val_dataset),
@@ -135,7 +134,6 @@ class ClassificationDataset(torch.utils.data.Dataset):
 
     Args:
         size: What type of resized images to take
-        val_pct: Part of data used for validation
 
     Reference:
         https://arxiv.org/pdf/2003.11211.pdf - select limited number of aspect ratios
@@ -144,9 +142,9 @@ class ClassificationDataset(torch.utils.data.Dataset):
 
     _aspect_ratios = np.array([2, 16 / 9, 3 / 2, 4 / 3, 5 / 4, 1, 4 / 5, 3 / 4, 2 / 3, 9 / 16, 1 / 2])
 
-    def __init__(self, root="data/interim", transform=None, train=True, val_pct=0.2, size=512):
+    def __init__(self, root="data/interim", transform=None, train=True, size=512):
         df = pd.read_csv(os.path.join(root, "train_val.csv"))
-
+        df = df[df["is_train"].astype(np.bool) == train]
         self.filenames = [
             os.path.join(root, f"train_data_{size}", path) for path in df["file_path"].values.tolist()]
 
@@ -156,14 +154,6 @@ class ClassificationDataset(torch.utils.data.Dataset):
         self.targets = df["label"].values.tolist()
         self.ar = df["aspect_ratio"].values
         self.is_query = df["is_query"].values.astype(np.bool)
-
-        # Take `val_pct` of the data for validation
-        # Use same data as for training, because tasks are different
-        if not train:
-            val_size = int(len(self.targets) * val_pct)
-            self.filenames = self.filenames[: val_size]
-            self.targets = self.targets[: val_size]
-            self.ar = self.ar[: val_size]
 
         # For each aspect ration in `ar` find closest value from the
         # `_aspect_ratios` and return it's index (group)

@@ -12,6 +12,7 @@ import multiprocessing
 import configargparse as argparse
 
 import torch
+import numpy as np
 import pandas as pd
 from PIL import Image
 from tqdm import tqdm
@@ -101,26 +102,26 @@ def main(hparams):
     # test_B_filenames = test_B_query_files + test_B_gallery_files
 
     # Delete old images
-    shutil.rmtree(hparams.output_path / f"train_data_{hparams.size}", ignore_errors=True)
-    (hparams.output_path / f"train_data_{hparams.size}").mkdir()
+    # shutil.rmtree(hparams.output_path / f"train_data_{hparams.size}", ignore_errors=True)
+    # (hparams.output_path / f"train_data_{hparams.size}").mkdir()
 
-    shutil.rmtree(hparams.output_path / f"test_data_A_{hparams.size}", ignore_errors=True)
-    (hparams.output_path / f"test_data_A_{hparams.size}").mkdir()
+    # shutil.rmtree(hparams.output_path / f"test_data_A_{hparams.size}", ignore_errors=True)
+    # (hparams.output_path / f"test_data_A_{hparams.size}").mkdir()
 
     # shutil.rmtree(hparams.output_path / f"test_data_B_{hparams.size}", ignore_errors=True)
     # (hparams.output_path / f"test_data_B_{hparams.size}").mkdir()
 
-    logger.info("Resizing train images...")
-    _ = resize_images(
-        files=train_filenames,
-        folder=f"train_data",
-        size=hparams.size,)
+    # logger.info("Resizing train images...")
+    # _ = resize_images(
+    #     files=train_filenames,
+    #     folder=f"train_data",
+    #     size=hparams.size,)
 
-    logger.info("Resizing test A images...")
-    _ = resize_images(
-        files=test_A_filenames,
-        folder=f"test_data_A",
-        size=hparams.size,)
+    # logger.info("Resizing test A images...")
+    # _ = resize_images(
+    #     files=test_A_filenames,
+    #     folder=f"test_data_A",
+    #     size=hparams.size,)
 
     # logger.info("Resizing test B images...")
     # test_outfilenames = resize_images(
@@ -143,9 +144,19 @@ def main(hparams):
     sizes = [str(x[0]) for x in sorted(result, key=lambda x: x[1])]
     df["original_size"] = sizes
     df["aspect_ratio"] = [round(x[0][0] / x[0][1], 4) for x in sorted(result, key=lambda x: x[1])]
+    
+    # Take `val_pct` of labels for validation
+    unique_labels = np.unique(labels)
+    val_labels = unique_labels[:int(len(unique_labels) * hparams.val_pct)]
+    df["is_train"] = [False if l in val_labels else True for l in labels]
 
-    # Split train data for query / gallery images
-    df["is_query"] = torch.FloatTensor(len(df)).uniform_() < hparams.val_pct
+    # Take 2 images from each class as a query
+    is_query = [False] * len(labels)
+    for l in val_labels:
+        ind = labels.index(l)
+        is_query[ind] = True
+        is_query[ind + 1] = True
+    df["is_query"] = is_query
 
     # Save results
     df.to_csv(hparams.output_path / "train_val.csv", index=None)
@@ -162,7 +173,6 @@ def main(hparams):
     sizes = [str(x[0]) for x in sorted(result, key=lambda x: x[1])]
     df_test["original_size"] = sizes
     df_test["aspect_ratio"] = [round(x[0][0] / x[0][1], 4) for x in sorted(result, key=lambda x: x[1])]
-
     df_test["is_query"] = torch.tensor([0.0] * len(test_A_gallery_files) + [1.0] * len(test_A_query_files))
 
     # Save results
@@ -186,7 +196,7 @@ if __name__ == "__main__":
     add_arg("--size", type=int, default=512, help="Size of min side after resize")
 
     # Split
-    add_arg("--val_pct", type=float, default=0.2, help="Part of train data used as query")
+    add_arg("--val_pct", type=float, default=0.2, help="Part of train data used for validation")
 
     # Setup logger
     config = {"handlers": [{"sink": sys.stdout, "format": "{time:[HH:mm]}:{message}"}]}

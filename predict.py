@@ -103,7 +103,6 @@ def test(hparams):
                 batch_size=hparams.batch_size,
                 size=hparams.size,
                 workers=hparams.workers,
-                val_pct=1.0,
             )
 
             val_embeddings = predict_from_loader(model, loader)
