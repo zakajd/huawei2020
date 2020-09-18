@@ -81,7 +81,8 @@ def main():
             pt_clb.ConsoleLogger(),
             pt_clb.FileLogger(),
             TB_callback,
-            pt_clb.CheckpointSaver(hparams.outdir, save_name="model.chpn"),
+            pt_clb.CheckpointSaver(hparams.outdir, save_name="model.chpn", monitor="target", mode="max"),
+            pt_clb.CheckpointSaver(hparams.outdir, save_name="model_loss.chpn", monitor="loss"),
             sheduler,
             # EMA must go after other checkpoints
             pt_clb.ModelEma(model, hparams.ema_decay) if hparams.ema_decay else pt_clb.Callback(),

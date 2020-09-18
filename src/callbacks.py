@@ -93,7 +93,7 @@ class ContestMetricsCallback(pt.fit_wrapper.callbacks.Callback):
     def __init__(self):
         super().__init__()
 
-        self.metric_names = ["Acc_@1", "mAP@10", ".5Acc+.5mAP", "CMC@10"]
+        self.metric_names = ["Acc_@1", "mAP@10", "target", "CMC@10"]
         self.target = None
         self.output = None
 
