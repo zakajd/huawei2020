@@ -1,0 +1,11 @@
+[09-18 08:42] - Parameters used for training: Namespace(arch='genet_normal', augmentation='hard', batch_size=64, config_file='configs/tmp/genet_gem2.yaml', criterion='arcface', criterion_params={'out_features': 3097, 's': 64.0, 'm': 0.8}, debug=False, ema_decay=0.0, embedding_size=512, model_params={}, name='genet_512_arcface_08_gem_hard', optim='adamw', outdir='logs/genet_512_arcface_08_gem_hard', phases=[{'ep': [0, 30], 'lr': [0.1, 0.005]}, {'ep': [30, 50], 'lr': [0.005, 0.0001]}], pooling='gem', resume='', root='data/interim', seed=42, size=512, tta=False, use_fp16=True, val_frequency=1, val_size=768, weight_decay=1e-05, workers=6)
+[09-18 08:42] - Start training
+[09-18 08:42] - Model size: 19.89M
+[09-18 08:42] - Loss for this run is: AdditiveAngularMarginLoss(
+  (criterion): CrossEntropyLoss()
+)
+[09-18 08:42] - Val size: 13556
+[09-18 08:42] - Train size: 55249
+[09-18 08:42] - True, None, None
+[09-18 08:42] - Start phase #1 from epoch 0 to epoch 30: {'ep': [0, 30], 'lr': [0.1, 0.005], 'mom': [], 'mode': 'linear'}
+[09-18 08:42] - Epoch 1 | lr 0.00e+00

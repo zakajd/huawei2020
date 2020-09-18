@@ -1,7 +1,7 @@
 
 # General
 # name: debug
-name: genet_512_arcface_gem_2_hard_ar_val
+name: genet_512_arcface_08_gem_hard
 seed: 42
 root: data/interim
 batch_size: 64
@@ -23,8 +23,8 @@ use_fp16: true
 weight_decay: 0.00001
 size: 512
 phases: [
-    {ep: [0, 30], lr: [0.1,0.001]},
-    {ep: [31, 50], lr: [0.001,0.00001]}
+    {ep: [0, 30], lr: [0.1,0.005]},
+    {ep: [30, 50], lr: [0.005,0.0001]}
 ]
 criterion: arcface
 criterion_params: {out_features: 3097, s: 64.0, m: 0.8}

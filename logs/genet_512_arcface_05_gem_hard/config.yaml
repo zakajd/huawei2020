@@ -4,29 +4,29 @@ batch_size: 64
 config_file: configs/tmp/genet_gem3.yaml
 criterion: arcface
 criterion_params:
-  m: 0.8
+  m: 0.5
   out_features: 3097
   s: 64.0
 debug: false
 ema_decay: 0.0
 embedding_size: 512
 model_params: {}
-name: genet_512_arcface_gem_3_hard_ar
+name: genet_512_arcface_05_gem_hard
 optim: adamw
-outdir: logs/genet_512_arcface_gem_3_hard_ar
+outdir: logs/genet_512_arcface_05_gem_hard
 phases:
 - ep:
   - 0
   - 30
   lr:
   - 0.1
-  - 0.001
+  - 0.005
 - ep:
-  - 31
+  - 30
   - 50
   lr:
-  - 0.001
-  - 1.0e-05
+  - 0.005
+  - 0.0001
 pooling: gem
 resume: ''
 root: data/interim
