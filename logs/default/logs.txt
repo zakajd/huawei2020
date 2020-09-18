@@ -1,0 +1,10 @@
+[09-18 21:08] - Parameters used for training: Namespace(arch='genet_small', augmentation='light', batch_size=128, config_file='configs/genet_small.yaml', criterion='arcface', criterion_params={'out_features': 3097, 's': 64.0, 'm': 0.5}, debug=False, ema_decay=0.0, embedding_size=512, freeze_bn=False, model_params={}, name='default', optim='adamw', outdir='logs/default', phases=[{'ep': [0, 3], 'lr': [0.1, 0.01]}], pooling='gem', resume='', root='data/interim', seed=42, size=512, tta=False, use_fp16=True, val_frequency=1, val_size=768, weight_decay=1e-05, workers=6)
+[09-18 21:09] - Model size: 7.24M
+[09-18 21:09] - Loss for this run is: AdditiveAngularMarginLoss(
+  (criterion): CrossEntropyLoss()
+)
+[09-18 21:09] - Val size: 13556
+[09-18 21:09] - Train size: 55249
+[09-18 21:09] - Start training
+[09-18 21:09] - Start phase #1 from epoch 0 to epoch 3: {'ep': [0, 3], 'lr': [0.1, 0.01], 'mom': [], 'mode': 'linear'}
+[09-18 21:09] - Epoch 1 | lr 0.00e+00

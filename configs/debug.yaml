@@ -1,0 +1,30 @@
+
+# General
+# name: debug
+seed: 42
+root: data/interim
+batch_size: 16
+workers: 6
+augmentation: light
+debug: true
+resume: ""
+
+# Model
+arch: genet_small
+pooling: gem
+model_params: {}
+embedding_size: 512
+ema_decay: 0.0
+freeze_bn: false
+
+# Training
+optim: adamw
+use_fp16: true
+weight_decay: 0.00001
+size: 512
+val_size: 768
+phases: [
+    {ep: [0, 3], lr: [0.01,0.005]},
+]
+criterion: arcface
+criterion_params: {out_features: 3097, s: 64.0, m: 0.5}
