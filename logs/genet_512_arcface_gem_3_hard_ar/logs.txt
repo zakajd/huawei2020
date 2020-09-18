@@ -92,3 +92,46 @@ TimeMeter profiling. Data time: 7.13E-04s. Model time: 3.95E-01s
 [09-17 17:25] - Val   loss: 29.3414 | Acc_@1: 0.8992 | mAP@10: 0.8927 | .5Acc+.5mAP: 0.8959 | CMC@10: 0.9604
 [09-17 17:25] - Epoch 20: best loss improved from 30.8165 to 29.3414
 [09-17 17:25] - Epoch 21 | lr 3.43e-02
+[09-17 17:37] - Train loss: 23.0186 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 17:37] - Val   loss: 28.5875 | Acc_@1: 0.8951 | mAP@10: 0.8911 | .5Acc+.5mAP: 0.8931 | CMC@10: 0.9640
+[09-17 17:37] - Epoch 21: best loss improved from 29.3414 to 28.5875
+[09-17 17:37] - Epoch 22 | lr 3.10e-02
+[09-17 17:53] - Train loss: 22.1742 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 17:53] - Val   loss: 28.5630 | Acc_@1: 0.9025 | mAP@10: 0.8963 | .5Acc+.5mAP: 0.8994 | CMC@10: 0.9623
+[09-17 17:53] - Epoch 22: best loss improved from 28.5875 to 28.5630
+[09-17 17:53] - Epoch 23 | lr 2.77e-02
+[09-17 18:10] - Train loss: 21.3578 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 18:10] - Val   loss: 27.3182 | Acc_@1: 0.9078 | mAP@10: 0.9020 | .5Acc+.5mAP: 0.9049 | CMC@10: 0.9642
+[09-17 18:10] - Epoch 23: best loss improved from 28.5630 to 27.3182
+[09-17 18:10] - Epoch 24 | lr 2.44e-02
+[09-17 18:24] - Train loss: 20.6083 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 18:24] - Val   loss: 27.0900 | Acc_@1: 0.9023 | mAP@10: 0.9004 | .5Acc+.5mAP: 0.9013 | CMC@10: 0.9628
+[09-17 18:24] - Epoch 24: best loss improved from 27.3182 to 27.0900
+[09-17 18:24] - Epoch 25 | lr 2.11e-02
+[09-17 18:36] - Train loss: 19.9744 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 18:36] - Val   loss: 26.1275 | Acc_@1: 0.9093 | mAP@10: 0.9073 | .5Acc+.5mAP: 0.9083 | CMC@10: 0.9676
+[09-17 18:36] - Epoch 25: best loss improved from 27.0900 to 26.1275
+[09-17 18:36] - Epoch 26 | lr 1.78e-02
+[09-17 18:49] - Train loss: 19.2926 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 18:49] - Val   loss: 25.4575 | Acc_@1: 0.9169 | mAP@10: 0.9106 | .5Acc+.5mAP: 0.9138 | CMC@10: 0.9683
+[09-17 18:49] - Epoch 26: best loss improved from 26.1275 to 25.4575
+[09-17 18:49] - Epoch 27 | lr 1.45e-02
+[09-17 19:02] - Train loss: 18.8394 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 19:02] - Val   loss: 25.1624 | Acc_@1: 0.9136 | mAP@10: 0.9112 | .5Acc+.5mAP: 0.9124 | CMC@10: 0.9669
+[09-17 19:02] - Epoch 27: best loss improved from 25.4575 to 25.1624
+[09-17 19:02] - Epoch 28 | lr 1.12e-02
+[09-17 19:15] - Train loss: 18.3155 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 19:15] - Val   loss: 24.7540 | Acc_@1: 0.9148 | mAP@10: 0.9130 | .5Acc+.5mAP: 0.9139 | CMC@10: 0.9698
+[09-17 19:15] - Epoch 28: best loss improved from 25.1624 to 24.7540
+[09-17 19:15] - Epoch 29 | lr 7.90e-03
+[09-17 19:28] - Train loss: 18.0376 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 19:28] - Val   loss: 24.4449 | Acc_@1: 0.9184 | mAP@10: 0.9149 | .5Acc+.5mAP: 0.9167 | CMC@10: 0.9695
+[09-17 19:28] - Epoch 29: best loss improved from 24.7540 to 24.4449
+[09-17 19:28] - Epoch 30 | lr 4.60e-03
+[09-17 19:41] - Train loss: 17.7459 | Acc_@1: 0.0000 | mAP@10: 0.0000 | .5Acc+.5mAP: 0.0000 | CMC@10: 0.0000
+[09-17 19:41] - Val   loss: 24.2490 | Acc_@1: 0.9184 | mAP@10: 0.9160 | .5Acc+.5mAP: 0.9172 | CMC@10: 0.9688
+[09-17 19:41] - Epoch 30: best loss improved from 24.4449 to 24.2490
+[09-17 19:41] - Loading best model from previous phase
+[09-17 19:41] - Start phase #2 from epoch 31 to epoch 50: {'ep': [31, 50], 'lr': [0.001, 1e-05], 'mom': [], 'mode': 'linear'}
+[09-17 19:41] - Loading best model from previous phase
+[09-17 19:41] - Finished Training. Took: 389.82m
