@@ -109,7 +109,7 @@ def main():
             train_loader,
             val_loader=val_loader,
             start_epoch=start_epoch,
-            epochs=end_epoch - start_epoch,
+            epochs=end_epoch,
             steps_per_epoch=20 if hparams.debug else None,
             val_steps=20 if hparams.debug else None,
         )
