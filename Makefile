@@ -63,3 +63,4 @@ data/interim/folds.csv : src/data/preprocess.py
 # 	rm -r logs/
 # 	rm -r models/
 # 	rm -r results/
+c2 python3 predict.py -c logs/genet_small_384_light_arcface80_1 --extract_embeddings --val_size 512 --validation --test --dba --aqe

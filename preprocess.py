@@ -120,7 +120,7 @@ def main(hparams):
     # Replace duplicate classes
     df["label"] = df["label"].replace(LABEL_MAP)
     df.drop_duplicates(subset="hash_md5", keep="first", inplace=True)
-    logger.info(f"Unique labels: {len(df['label'].uniqu2e())}")
+    logger.info(f"Unique labels: {len(df['label'].unique())}")
 
     # Get original image size as an additional feature
     result = get_sizes(df["full_path"])
