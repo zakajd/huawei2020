@@ -1,9 +1,9 @@
 
 # General
-name: genet_small_384_light_arcface80_1
+name: genet_small_384_light_arcface80_20
 seed: 42
 root: data/interim
-batch_size: 128
+batch_size: 96
 workers: 6
 augmentation: light
 debug: false
@@ -24,7 +24,7 @@ weight_decay: 0.00001
 size: 384
 val_size: 512
 phases: [
-    {ep: [0, 20], lr: [0.01,0.0001]},
+    {ep: [0, 20], lr: [0.005,0.0001]},
 ]
 criterion: arcface
 criterion_params: {out_features: 3097, s: 80.0, m: 1.0}

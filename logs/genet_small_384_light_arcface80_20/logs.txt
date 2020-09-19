@@ -1,0 +1,25 @@
+[09-20 02:21] - Parameters used for training: Namespace(arch='genet_small', augmentation='light', batch_size=96, config_file='configs/1_genet_small.yaml', criterion='arcface', criterion_params={'out_features': 3097, 's': 80.0, 'm': 1.0}, debug=False, ema_decay=0.0, embedding_size=512, freeze_bn=False, model_params={}, name='genet_small_384_light_arcface80_20', optim='adamw', outdir='logs/genet_small_384_light_arcface80_20', phases=[{'ep': [0, 20], 'lr': [0.005, 0.0001]}], pooling='gem', resume='', root='data/interim', seed=42, size=384, tta=False, use_fp16=True, val_frequency=1, val_size=512, weight_decay=1e-05, workers=8)
+[09-20 02:21] - Model size: 7.24M
+[09-20 02:21] - Loss for this run is: AdditiveAngularMarginLoss(
+  (criterion): CrossEntropyLoss()
+)
+[09-20 02:21] - Using sizes {(384, 768), (384, 512), (480, 384), (384, 384), (512, 384), (384, 576), (384, 480), (768, 384), (576, 384), (680, 384), (384, 680)} for train
+[09-20 02:21] - Using sizes {(768, 512), (512, 512), (640, 512), (512, 1024), (512, 768), (1024, 512), (512, 640), (680, 512), (904, 512), (512, 904), (512, 680)} for validation
+[09-20 02:21] - Val size: 16656
+[09-20 02:21] - Train size: 51945
+[09-20 02:21] - Start training
+[09-20 02:21] - Start phase #1 from epoch 0 to epoch 20: {'ep': [0, 20], 'lr': [0.005, 0.0001], 'mom': [], 'mode': 'linear'}
+[09-20 02:21] - Epoch 1 | lr 0.00e+00
+[09-20 02:25] - 
+TimeMeter profiling. Data time: 4.46E-03s. Model time: 4.04E-01s 
+
+[09-20 02:27] - Train loss: 76.9342 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 02:27] - Val   loss: 77.2594 | Acc@1: 0.5873 | mAP@10: 0.5936 | target: 0.5905 | mAP@R: 0.5377
+[09-20 02:27] - Epoch  1: best target improved from -inf to 0.5905
+[09-20 02:27] - Epoch  1: best mAP@R improved from -inf to 0.5377
+[09-20 02:27] - Epoch 2 | lr 4.79e-03
+[09-20 02:33] - Train loss: 76.0566 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 02:33] - Val   loss: 77.6445 | Acc@1: 0.7549 | mAP@10: 0.7339 | target: 0.7444 | mAP@R: 0.6844
+[09-20 02:33] - Epoch  2: best target improved from 0.5905 to 0.7444
+[09-20 02:33] - Epoch  2: best mAP@R improved from 0.5377 to 0.6844
+[09-20 02:33] - Epoch 3 | lr 4.55e-03

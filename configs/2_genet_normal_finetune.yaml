@@ -1,16 +1,16 @@
 
 # General
-name: genet_small_384_hard_arcface80
+name: genet_normal_384_hard_arcface80
 seed: 42
 root: data/interim
-batch_size: 96
-workers: 8
+batch_size: 128
+workers: 6
 augmentation: hard
 debug: false
-resume: logs/genet_small_384_light_arcface80
+resume: logs/genet_normal_384_light_arcface80
 
 # Model
-arch: genet_small
+arch: genet_normal
 pooling: gem
 model_params: {}
 embedding_size: 512

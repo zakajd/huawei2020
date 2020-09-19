@@ -1,0 +1,25 @@
+[09-20 02:22] - Parameters used for training: Namespace(arch='genet_normal', augmentation='light', batch_size=128, config_file='configs/1_genet_normal.yaml', criterion='arcface', criterion_params={'out_features': 3097, 's': 80.0, 'm': 20.0}, debug=False, ema_decay=0.0, embedding_size=512, freeze_bn=False, model_params={}, name='genet_normal_384_light_arcface80_20', optim='adamw', outdir='logs/genet_normal_384_light_arcface80_20', phases=[{'ep': [0, 20], 'lr': [0.005, 0.0001]}], pooling='gem', resume='', root='data/interim', seed=42, size=384, tta=False, use_fp16=True, val_frequency=1, val_size=512, weight_decay=1e-05, workers=6)
+[09-20 02:22] - Model size: 19.89M
+[09-20 02:22] - Loss for this run is: AdditiveAngularMarginLoss(
+  (criterion): CrossEntropyLoss()
+)
+[09-20 02:22] - Using sizes {(384, 768), (384, 512), (480, 384), (384, 384), (512, 384), (384, 576), (384, 480), (768, 384), (576, 384), (680, 384), (384, 680)} for train
+[09-20 02:22] - Using sizes {(768, 512), (512, 512), (640, 512), (512, 1024), (512, 768), (1024, 512), (512, 640), (680, 512), (904, 512), (512, 904), (512, 680)} for validation
+[09-20 02:22] - Val size: 16656
+[09-20 02:22] - Train size: 51945
+[09-20 02:22] - Start training
+[09-20 02:22] - Start phase #1 from epoch 0 to epoch 20: {'ep': [0, 20], 'lr': [0.005, 0.0001], 'mom': [], 'mode': 'linear'}
+[09-20 02:22] - Epoch 1 | lr 0.00e+00
+[09-20 02:26] - 
+TimeMeter profiling. Data time: 4.85E-03s. Model time: 4.91E-01s 
+
+[09-20 02:28] - Train loss: 82.7799 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 02:28] - Val   loss: 82.7029 | Acc@1: 0.5291 | mAP@10: 0.5413 | target: 0.5352 | mAP@R: 0.4867
+[09-20 02:28] - Epoch  1: best target improved from -inf to 0.5352
+[09-20 02:28] - Epoch  1: best mAP@R improved from -inf to 0.4867
+[09-20 02:28] - Epoch 2 | lr 4.82e-03
+[09-20 02:33] - Train loss: 82.1809 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 02:33] - Val   loss: 82.7159 | Acc@1: 0.7310 | mAP@10: 0.7130 | target: 0.7220 | mAP@R: 0.6599
+[09-20 02:33] - Epoch  2: best target improved from 0.5352 to 0.7220
+[09-20 02:33] - Epoch  2: best mAP@R improved from 0.4867 to 0.6599
+[09-20 02:34] - Epoch 3 | lr 4.57e-03

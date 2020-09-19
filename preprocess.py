@@ -120,6 +120,7 @@ def main(hparams):
     # Replace duplicate classes
     df["label"] = df["label"].replace(LABEL_MAP)
     df.drop_duplicates(subset="hash_md5", keep="first", inplace=True)
+    logger.info(f"Unique labels: {len(df['label'].uniqu2e())}")
 
     # Get original image size as an additional feature
     result = get_sizes(df["full_path"])
@@ -162,7 +163,6 @@ def main(hparams):
 
     # shutil.rmtree(hparams.output_path / f"test_data_A_{hparams.size}", ignore_errors=True)
     # (hparams.output_path / f"test_data_A_{hparams.size}").mkdir()
-
 
     # df_test_data = {
     #     "file_path": [p.relative_to(hparams.root / "test_data_A") for p in test_A_filenames],
