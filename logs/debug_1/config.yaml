@@ -1,7 +1,7 @@
-arch: genet_normal
-augmentation: hard
-batch_size: 64
-config_file: configs/tmp/genet_gem3.yaml
+arch: genet_small
+augmentation: light
+batch_size: 128
+config_file: configs/genet_small.yaml
 criterion: arcface
 criterion_params:
   m: 0.5
@@ -10,31 +10,26 @@ criterion_params:
 debug: false
 ema_decay: 0.0
 embedding_size: 512
+freeze_bn: false
 model_params: {}
-name: genet_512_arcface_05_gem_hard
+name: debug
 optim: adamw
-outdir: logs/genet_512_arcface_05_gem_hard
+outdir: logs/debug
 phases:
 - ep:
   - 0
-  - 30
+  - 3
   lr:
   - 0.1
-  - 0.005
-- ep:
-  - 30
-  - 50
-  lr:
-  - 0.005
-  - 0.0001
+  - 0.01
 pooling: gem
 resume: ''
 root: data/interim
 seed: 42
-size: 512
+size: 384
 tta: false
 use_fp16: true
 val_frequency: 1
-val_size: 768
+val_size: 512
 weight_decay: 1.0e-05
 workers: 6
