@@ -6,9 +6,10 @@ import cv2
 import sys
 import time
 import shutil
-import pathlib
 import functools
+from hashlib import md5
 import multiprocessing
+from pathlib import Path
 import configargparse as argparse
 
 import torch
@@ -17,6 +18,8 @@ import pandas as pd
 from PIL import Image
 from tqdm import tqdm
 from loguru import logger
+
+from src.utils import LABEL_MAP
 
 NUM_THREADS = 10
 
@@ -53,7 +56,7 @@ def resize_images(files, folder, size):
 
     # Change all data formats to jpg
     out_filenames = list(map(
-        lambda x: pathlib.Path("data/interim", f"{folder}_{size}", os.path.relpath(x, start=f"data/raw/{folder}")), files)
+        lambda x: Path("data/interim", f"{folder}_{size}", os.path.relpath(x, start=f"data/raw/{folder}")), files)
     )
     resize_function = functools.partial(resize_one_image, size=size)
 
@@ -91,12 +94,9 @@ def get_hash(filenames):
 
 
 def main(hparams):
-    hparams.root = pathlib.Path(hparams.root)
-    hparams.output_path = pathlib.Path(hparams.output_path)
 
-    # Read filenames
-    with open(hparams.root / "train_data/label.txt") as f:
-        data = f.readlines()
+    logger.info("Creating train DF with additional metadata")
+    data = (hparams.root / "train_data/label.txt").open().readlines()
 
     filenames, labels = [], []
     for row in data:
@@ -104,68 +104,38 @@ def main(hparams):
         filenames.append(file)
         labels.append(int(label))
 
-    # Remove duplicates and 
-    train_filenames = [hparams.root / "train_data" / file for file in filenames]
-
-    test_A_query_files = sorted((hparams.root / "test_data_A" / "query").glob("*.jpg"))
-    test_A_gallery_files = sorted((hparams.root / "test_data_A" / "gallery").glob("*.jpg"))
-    # test_B_query_files = sorted((hparams.root / "test_data_B" / "query").glob("*.jpg"))
-    # test_B_gallery_files = sorted((hparams.root / "test_data_B" / "gallery").glob("*.jpg"))
-
-    test_A_filenames = test_A_query_files + test_A_gallery_files
-    # test_B_filenames = test_B_query_files + test_B_gallery_files
-
-    # Delete old images
-    # shutil.rmtree(hparams.output_path / f"train_data_{hparams.size}", ignore_errors=True)
-    # (hparams.output_path / f"train_data_{hparams.size}").mkdir()
-
-    # shutil.rmtree(hparams.output_path / f"test_data_A_{hparams.size}", ignore_errors=True)
-    # (hparams.output_path / f"test_data_A_{hparams.size}").mkdir()
-
-    # shutil.rmtree(hparams.output_path / f"test_data_B_{hparams.size}", ignore_errors=True)
-    # (hparams.output_path / f"test_data_B_{hparams.size}").mkdir()
-
-    # logger.info("Resizing train images...")
-    # _ = resize_images(
-    #     files=train_filenames,
-    #     folder=f"train_data",
-    #     size=hparams.size,)
-
-    # logger.info("Resizing test A images...")
-    # _ = resize_images(
-    #     files=test_A_filenames,
-    #     folder=f"test_data_A",
-    #     size=hparams.size,)
-
-    # logger.info("Resizing test B images...")
-    # test_outfilenames = resize_images(
-    #     files=test_B_filenames,
-    #     folder=f"test_data_B",
-    #     size=hparams.size)
-
-    logger.info("Creating DF with additional metadata")
-
-    # Train
     df_data = {
         "file_path": filenames,
         "label": labels,
+        "full_path": [hparams.root / "train_data" / file for file in filenames]
     }
     df = pd.DataFrame(data=df_data)
 
+    logger.info(f"Deleting duplicates, merging labels")
+    result = get_hash(df["full_path"])
+    df.sort_values(by="full_path", inplace=True)
+    hashes_md5 = [x[0] for x in sorted(result, key=lambda x: x[1])]
+    df["hash_md5"] = hashes_md5
+
+    # Replace duplicate classes
+    df["label"] = df["label"].replace(LABEL_MAP)
+    df.drop_duplicates(subset="hash_md5", keep="first", inplace=True)
+
     # Get original image size as an additional feature
-    result = get_sizes(train_filenames)
-    df.sort_values(by="file_path", inplace=True)
+    result = get_sizes(df["full_path"])
+    df.sort_values(by="full_path", inplace=True)
     sizes = [str(x[0]) for x in sorted(result, key=lambda x: x[1])]
     df["original_size"] = sizes
     df["aspect_ratio"] = [round(x[0][0] / x[0][1], 4) for x in sorted(result, key=lambda x: x[1])]
 
     # Take `val_pct` of labels for validation
-    unique_labels = np.unique(labels)
+    unique_labels = df["label"].unique()
     val_labels = unique_labels[:int(len(unique_labels) * hparams.val_pct)]
-    df["is_train"] = [False if l in val_labels else True for l in labels]
+    df["is_train"] = [False if l in val_labels else True for l in df["label"].values]
 
     # Take 2 images from each class as a query
-    is_query = [False] * len(labels)
+    is_query = [False] * len(df)
+    labels = df["label"].values.tolist()
     for l in val_labels:
         ind = labels.index(l)
         is_query[ind] = True
@@ -174,24 +144,61 @@ def main(hparams):
 
     # Save results
     df.to_csv(hparams.output_path / "train_val.csv", index=None)
+    
+    # Delete old images
+    # shutil.rmtree(hparams.output_path / f"train_data_{hparams.size}", ignore_errors=True)
+    # (hparams.output_path / f"train_data_{hparams.size}").mkdir()
+
+    # logger.info("Resizing train images...")
+    # _ = resize_images(
+    #     files=train_filenames,
+    #     folder=f"train_data",
+    #     size=hparams.size,)
 
     # Test A
-    df_test_data = {
-        "file_path": [p.relative_to(hparams.root / "test_data_A") for p in test_A_filenames],
-    }
-    df_test = pd.DataFrame(data=df_test_data)
+    # test_A_query_files = sorted((hparams.root / "test_data_A" / "query").glob("*.jpg"))
+    # test_A_gallery_files = sorted((hparams.root / "test_data_A" / "gallery").glob("*.jpg"))
+    # test_A_filenames = test_A_query_files + test_A_gallery_files
+
+    # shutil.rmtree(hparams.output_path / f"test_data_A_{hparams.size}", ignore_errors=True)
+    # (hparams.output_path / f"test_data_A_{hparams.size}").mkdir()
+
+
+    # df_test_data = {
+    #     "file_path": [p.relative_to(hparams.root / "test_data_A") for p in test_A_filenames],
+    # }
+    # df_test = pd.DataFrame(data=df_test_data)
 
     # Get original image size as an additional feature
-    result = get_sizes(test_A_filenames)
-    df_test.sort_values(by="file_path", inplace=True)
-    sizes = [str(x[0]) for x in sorted(result, key=lambda x: x[1])]
-    df_test["original_size"] = sizes
-    df_test["aspect_ratio"] = [round(x[0][0] / x[0][1], 4) for x in sorted(result, key=lambda x: x[1])]
-    df_test["is_query"] = torch.tensor([0.0] * len(test_A_gallery_files) + [1.0] * len(test_A_query_files))
+    # result = get_sizes(test_A_filenames)
+    # df_test.sort_values(by="file_path", inplace=True)
+    # sizes = [str(x[0]) for x in sorted(result, key=lambda x: x[1])]
+    # df_test["original_size"] = sizes
+    # df_test["aspect_ratio"] = [round(x[0][0] / x[0][1], 4) for x in sorted(result, key=lambda x: x[1])]
+    # df_test["is_query"] = torch.tensor([0.0] * len(test_A_gallery_files) + [1.0] * len(test_A_query_files))
 
     # Save results
-    df_test.to_csv(hparams.output_path / "test_A.csv", index=None)
+    # df_test.to_csv(hparams.output_path / "test_A.csv", index=None)
 
+    # logger.info("Resizing test A images...")
+    # _ = resize_images(
+    #     files=test_A_filenames,
+    #     folder=f"test_data_A",
+    #     size=hparams.size,)
+
+    # Test B
+    # test_B_query_files = sorted((hparams.root / "test_data_B" / "query").glob("*.jpg"))
+    # test_B_gallery_files = sorted((hparams.root / "test_data_B" / "gallery").glob("*.jpg"))
+    # test_B_filenames = test_B_query_files + test_B_gallery_files
+
+    # shutil.rmtree(hparams.output_path / f"test_data_B_{hparams.size}", ignore_errors=True)
+    # (hparams.output_path / f"test_data_B_{hparams.size}").mkdir()
+
+    # logger.info("Resizing test B images...")
+    # test_outfilenames = resize_images(
+    #     files=test_B_filenames,
+    #     folder=f"test_data_B",
+    #     size=hparams.size)
 
 if __name__ == "__main__":
     # Parse args
@@ -203,11 +210,11 @@ if __name__ == "__main__":
     add_arg = parser.add_argument
 
     # base args
-    add_arg("--output_path", type=str, default="data/interim", help="Path to save files")
-    add_arg("--root", type=str, default="data/raw", help="Path to all raw data as provided by organizers")
+    add_arg("--output_path", type=Path, default="data/interim", help="Path to save files")
+    add_arg("--root", type=Path, default="data/raw", help="Path to all raw data as provided by organizers")
 
     # Resize
-    add_arg("--size", type=int, default=512, help="Size of min side after resize")
+    add_arg("--size", type=int, default=256, help="Size of min side after resize")
 
     # Split
     add_arg("--val_pct", type=float, default=0.2, help="Part of train data used for validation")

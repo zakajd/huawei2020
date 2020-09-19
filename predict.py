@@ -6,7 +6,7 @@ import os
 import time
 import yaml
 import argparse
-import pathlib
+from pathlib import Path
 
 import torch
 import numpy as np
@@ -73,7 +73,6 @@ def predict_from_loader(model, loader):
 
 
 def test(hparams):
-    hparams.config_path = pathlib.Path(hparams.config_path)
     # Check that folder exists
     assert hparams.config_path.exists()
 
@@ -98,6 +97,7 @@ def test(hparams):
     # -------------- Get embeddings for val and test data --------------
     if hparams.extract_embeddings:
         if hparams.validation:
+            print(f"Using size {hparams.val_size}")
             loader, indexes = get_val_dataloader(
                 root=hparams.root,
                 augmentation="val",
@@ -195,7 +195,7 @@ def test(hparams):
         distances = torch.cdist(query_embeddings, gallery_embeddings)
         perm_matrix = torch.argsort(distances)
 
-        logger.info(f"Creating submission{'_dba' if hparams.dba else ''}{'_aqe' if hparams.aqe else ''}.csv")
+        logger.info(f"Creating submission{'_dba' if hparams.dba else ''}{'_aqe' if hparams.aqe else ''}_{hparams.val_size}.csv")
         data = {
             "image_id": [],
             "gallery_img_list": []
@@ -211,7 +211,8 @@ def test(hparams):
         df = pd.DataFrame(data=data)
         df["gallery_img_list"] = df["gallery_img_list"].apply(lambda x: '{{{}}}'.format(",".join(x))).astype(str)
         lines = [f"{x},{y}" for x, y in zip(data["image_id"], df["gallery_img_list"])]
-        with open(hparams.config_path / f"submission{'_dba' if hparams.dba else ''}{'_aqe' if hparams.aqe else ''}.csv", "w") as f:
+        with open(hparams.config_path \
+            / f"submission{'_dba' if hparams.dba else ''}{'_aqe' if hparams.aqe else ''}_{hparams.val_size}.csv", "w") as f:
             for line in lines:
                 f.write(line + '\n')
 
@@ -222,7 +223,7 @@ if __name__ == "__main__":
     )
     # General
     parser.add_argument(
-        "--config_path", "-c", type=str, help="Path to folder with model config and checkpoint")
+        "--config_path", "-c", type=Path, help="Path to folder with model config and checkpoint")
     parser.add_argument(
         "--output_path", type=str, default="data/processed", help="Path to save scores")
     parser.add_argument(
@@ -233,6 +234,8 @@ if __name__ == "__main__":
         "--test", action="store_true", help="Flag to predict test")
 
     # Options
+    parser.add_argument(
+        "--val_size", default=None, type=int, help="Size for validatiion")
     parser.add_argument(
         "--dba", default=False, action='store_true', help="Use DBA")
     parser.add_argument(
