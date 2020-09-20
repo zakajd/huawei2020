@@ -7,6 +7,8 @@ import torch
 import pytorch_tools as pt
 from loguru import logger
 
+from src.losses import LOSS_FROM_NAME
+
 sys.path.append("/home/zakirov/repoz/GPU-Efficient-Networks/")
 # sys.path.append("/raid/dzakirov/code/GPU-Efficient-Networks/")
 import GENet  # noqa

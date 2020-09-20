@@ -191,4 +191,4 @@ LOSS_FROM_NAME = {
     "cosface": LargeMarginCosineLoss,
 #     "arcface_": functools.partial(AngularPenaltySMLoss, loss_type='arcface'),
 #     'cosface_': functools.partial(AngularPenaltySMLoss, loss_type='cosface'),
-# }
+}
