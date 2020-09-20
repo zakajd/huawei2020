@@ -1,0 +1,12 @@
+[09-20 06:38] - Parameters used for training: Namespace(arch='genet_normal', augmentation='hard', batch_size=64, config_file='configs/2_genet_normal_512_finetune.yaml', criterion='arcface', criterion_params={'out_features': 3097, 's': 80.0, 'm': 20.0}, debug=False, ema_decay=0.0, embedding_size=512, freeze_bn=False, model_params={}, name='genet_normal_512_hard_arcface80_20', optim='adamw', outdir='logs/genet_normal_512_hard_arcface80_20', phases=[{'ep': [0, 30], 'lr': [0.001, 1e-05]}], pooling='gem', resume='logs/genet_normal_512_light_arcface80_20/model.chpn', root='data/interim', seed=42, size=512, tta=False, use_fp16=True, val_frequency=1, val_size=768, weight_decay=1e-05, workers=6)
+[09-20 06:39] - Model size: 19.89M
+[09-20 06:39] - Loss for this run is: AdditiveAngularMarginLoss(
+  (criterion): CrossEntropyLoss()
+)
+[09-20 06:39] - Using sizes {(680, 512), (512, 512), (1024, 512), (512, 904), (512, 640), (640, 512), (512, 768), (904, 512), (512, 680), (512, 1024), (768, 512)} for train
+[09-20 06:39] - Using sizes {(768, 1360), (960, 768), (1536, 768), (768, 768), (1360, 768), (1152, 768), (768, 1536), (1024, 768), (768, 960), (768, 1024), (768, 1152)} for validation
+[09-20 06:39] - Val size: 16672
+[09-20 06:39] - Train size: 51935
+[09-20 06:39] - Start training
+[09-20 06:39] - Start phase #1 from epoch 0 to epoch 30: {'ep': [0, 30], 'lr': [0.001, 1e-05], 'mom': [], 'mode': 'linear'}
+[09-20 06:39] - Epoch 1 | lr 0.00e+00

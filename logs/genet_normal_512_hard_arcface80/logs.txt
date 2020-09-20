@@ -10,3 +10,12 @@
 [09-20 06:06] - Start training
 [09-20 06:06] - Start phase #1 from epoch 0 to epoch 1: {'ep': [0, 1], 'lr': [1e-06, 0.001], 'mom': [], 'mode': 'linear'}
 [09-20 06:06] - Epoch 1 | lr 0.00e+00
+[09-20 06:14] - TimeMeter profiling. Data time: 6.59E-02s. Model time: 4.66E-01s 
+
+[09-20 06:29] - Train loss: 22.3114 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 06:29] - Val   loss: 98.4251 | Acc@1: 0.8556 | mAP@10: 0.8369 | target: 0.8463 | mAP@R: 0.8029
+[09-20 06:29] - Epoch  1: best target improved from -inf to 0.8463
+[09-20 06:29] - Epoch  1: best mAP@R improved from -inf to 0.8029
+[09-20 06:29] - Loading best model from previous phase
+[09-20 06:29] - Start phase #2 from epoch 1 to epoch 30: {'ep': [1, 30], 'lr': [0.001, 1e-05], 'mom': [], 'mode': 'linear'}
+[09-20 06:29] - Epoch 2 | lr 9.47e-04

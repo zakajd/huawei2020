@@ -120,3 +120,11 @@
 [09-20 06:00] - Train loss: 19.5347 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
 [09-20 06:00] - Val   loss: 106.7284 | Acc@1: 0.7570 | mAP@10: 0.7452 | target: 0.7511 | mAP@R: 0.7020
 [09-20 06:00] - Epoch 29 | lr 7.77e-04
+[09-20 06:10] - Train loss: 19.2851 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 06:10] - Val   loss: 106.8795 | Acc@1: 0.7491 | mAP@10: 0.7448 | target: 0.7470 | mAP@R: 0.7046
+[09-20 06:10] - Epoch 30 | lr 4.47e-04
+[09-20 06:30] - Train loss: 19.0863 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 06:30] - Val   loss: 106.8331 | Acc@1: 0.7430 | mAP@10: 0.7380 | target: 0.7405 | mAP@R: 0.6971
+[09-20 06:30] - Loading best model from previous phase
+[09-20 06:34] - Val: Acc@1 0.78169, mAP@10 0.75859, Target 0.77014, mAP@R 0.71728
+[09-20 06:34] - Finished Training. Took: 406.37m
