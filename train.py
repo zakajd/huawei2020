@@ -45,7 +45,9 @@ def main():
         arch=hparams.arch,
         model_params=hparams.model_params,
         embedding_size=hparams.embedding_size,
-        pooling=hparams.pooling).cuda()
+        pooling=hparams.pooling,
+        criterion_params=hparams.criterion_params,
+    ).cuda()
 
     if hparams.resume:
         checkpoint = torch.load(hparams.resume, map_location=lambda storage, loc: storage.cuda())

@@ -1,0 +1,9 @@
+[09-20 15:13] - Parameters used for training: Namespace(arch='genet_normal', augmentation='hard', batch_size=64, config_file='configs/1_genet_normal_384.yaml', criterion='arcface', criterion_params={'out_features': 3097, 's': 100.0, 'm': 20.0}, debug=False, ema_decay=0.0, embedding_size=512, freeze_bn=False, model_params={}, name='genet_normal_384_hard_arcface100_20', optim='adamw', outdir='logs/genet_normal_384_hard_arcface100_20_1', phases=[{'ep': [0, 10], 'lr': [1e-06, 0.01]}, {'ep': [10, 100], 'lr': [0.01, 1e-05]}], pooling='gem', resume='', root='data/interim', seed=42, size=384, tta=False, use_fp16=True, val_frequency=1, val_size=512, weight_decay=1e-05, workers=6)
+[09-20 15:13] - Model size: 21.48M
+[09-20 15:13] - Using sizes {(384, 768), (384, 512), (480, 384), (384, 384), (512, 384), (384, 576), (384, 480), (768, 384), (576, 384), (680, 384), (384, 680)} for train
+[09-20 15:13] - Using sizes {(768, 512), (512, 512), (640, 512), (512, 1024), (512, 768), (1024, 512), (512, 640), (680, 512), (904, 512), (512, 904), (512, 680)} for validation
+[09-20 15:13] - Val size: 16656
+[09-20 15:13] - Train size: 51945
+[09-20 15:13] - Start training
+[09-20 15:13] - Start phase #1 from epoch 0 to epoch 10: {'ep': [0, 10], 'lr': [1e-06, 0.01], 'mom': [], 'mode': 'linear'}
+[09-20 15:13] - Epoch 1 | lr 0.00e+00
