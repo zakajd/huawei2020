@@ -29,3 +29,8 @@
 [09-20 05:49] - Epoch  3: best target improved from 0.7770 to 0.7816
 [09-20 05:49] - Epoch  3: best mAP@R improved from 0.7217 to 0.7250
 [09-20 05:49] - Epoch 4 | lr 9.37e-04
+[09-20 06:01] - Train loss: 68.0225 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 06:01] - Val   loss: 87.4440 | Acc@1: 0.7940 | mAP@10: 0.7743 | target: 0.7841 | mAP@R: 0.7313
+[09-20 06:01] - Epoch  4: best target improved from 0.7816 to 0.7841
+[09-20 06:01] - Epoch  4: best mAP@R improved from 0.7250 to 0.7313
+[09-20 06:01] - Epoch 5 | lr 9.03e-04

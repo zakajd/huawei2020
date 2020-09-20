@@ -119,3 +119,5 @@
 [09-20 05:52] - Train loss: 6.6095 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
 [09-20 05:52] - Val   loss: 102.1464 | Acc@1: 0.8116 | mAP@10: 0.7940 | target: 0.8028 | mAP@R: 0.7593
 [09-20 05:52] - Loading best model from previous phase
+[09-20 05:58] - Val: Acc@1 0.87060, mAP@10 0.84322, Target 0.85691, mAP@R 0.80984
+[09-20 05:58] - Finished Training. Took: 371.71m
