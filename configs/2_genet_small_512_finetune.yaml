@@ -1,13 +1,13 @@
 
 # General
-name: genet_small_512_hard_arcface80
+name: genet_small_512_hard_arcface80_20
 seed: 42
 root: data/interim
 batch_size: 96
-workers: 10
+workers: 8
 augmentation: hard
 debug: false
-resume: logs/genet_small_512_light_arcface80
+resume: logs/genet_small_512_light_arcface80_20/model.chpn
 
 # Model
 arch: genet_small
@@ -24,7 +24,8 @@ weight_decay: 0.00001
 size: 512
 val_size: 768
 phases: [
-    {ep: [0, 30], lr: [0.001,0.00001]},
+    {ep: [0, 1], lr: [0.000001,0.001]},
+    {ep: [1, 30], lr: [0.001,0.00001]},
 ]
 criterion: arcface
-criterion_params: {out_features: 3097, s: 80.0, m: 1.0}
+criterion_params: {out_features: 3097, s: 80.0, m: 20.0}

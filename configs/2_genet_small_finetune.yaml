@@ -7,7 +7,7 @@ batch_size: 96
 workers: 8
 augmentation: hard
 debug: false
-resume: logs/genet_small_384_light_arcface80
+resume: logs/genet_small_384_light_arcface80/model.chpn
 
 # Model
 arch: genet_small
@@ -24,7 +24,8 @@ weight_decay: 0.00001
 size: 384
 val_size: 512
 phases: [
-    {ep: [0, 30], lr: [0.001,0.00001]},
+    {ep: [0, 1], lr: [0.000001,0.001]},
+    {ep: [1, 30], lr: [0.001,0.00001]},
 ]
 criterion: arcface
 criterion_params: {out_features: 3097, s: 80.0, m: 1.0}
