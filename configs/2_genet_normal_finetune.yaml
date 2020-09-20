@@ -1,13 +1,13 @@
 
 # General
-name: genet_normal_384_hard_arcface80
+name: genet_normal_384_hard_arcface80_20
 seed: 42
 root: data/interim
-batch_size: 128
+batch_size: 96
 workers: 6
 augmentation: hard
 debug: false
-resume: logs/genet_normal_384_light_arcface80/model.chpn
+resume: logs/genet_normal_384_light_arcface80_20/model.chpn
 
 # Model
 arch: genet_normal
@@ -28,4 +28,4 @@ phases: [
     {ep: [1, 30], lr: [0.001,0.00001]},
 ]
 criterion: arcface
-criterion_params: {out_features: 3097, s: 80.0, m: 1.0}
+criterion_params: {out_features: 3097, s: 80.0, m: 20.0}

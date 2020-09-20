@@ -1,7 +1,7 @@
-arch: genet_small
-augmentation: light
-batch_size: 128
-config_file: configs/genet_small.yaml
+arch: genet_normal
+augmentation: hard
+batch_size: 96
+config_file: configs/2_genet_normal_finetune.yaml
 criterion: arcface
 criterion_params:
   m: 1.0
@@ -12,24 +12,24 @@ ema_decay: 0.0
 embedding_size: 512
 freeze_bn: false
 model_params: {}
-name: genet_small_384_light_arcface80_1
+name: genet_normal_384_hard_arcface80
 optim: adamw
-outdir: logs/genet_small_384_light_arcface80_1
+outdir: logs/genet_normal_384_hard_arcface80
 phases:
 - ep:
   - 0
-  - 20
+  - 1
   lr:
-  - 0.01
+  - 1.0e-06
   - 0.001
 - ep:
-  - 20
-  - 50
+  - 1
+  - 30
   lr:
   - 0.001
   - 1.0e-05
 pooling: gem
-resume: ''
+resume: logs/genet_normal_384_light_arcface80/model.chpn
 root: data/interim
 seed: 42
 size: 384
