@@ -62,9 +62,8 @@ def main():
     logger.info(f"Model size: {num_params / 1e6:.02f}M")
     # logger.info(model)
 
-    # Get loss
-    loss = LOSS_FROM_NAME[hparams.criterion](in_features=hparams.embedding_size, **hparams.criterion_params).cuda()
-    logger.info(f"Loss for this run is: {loss}")
+    # CE is default loss AFTER ArcFace / CosFace layer. See model.Model for details
+    loss = torch.nn.CrossEntropyLoss().cuda()
 
     # Scheduler is an advanced way of planning experiment
     sheduler = pt.fit_wrapper.callbacks.PhasesScheduler(hparams.phases)

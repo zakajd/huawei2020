@@ -17,7 +17,14 @@ class Model(torch.nn.Module):
     Returns:
         x: L2 NORMALIZED features, ready to be used as image embeddings
     """
-    def __init__(self, arch='resnet50', embedding_size=512, pooling="avg", model_params={},):
+    def __init__(
+        self,
+        arch='resnet50',
+        embedding_size=512,
+        criterion_params={},
+        pooling="avg",
+        model_params={},
+        loss_layer="arcface",):
         # All models return raw logits
         super().__init__()
         if arch == 'genet_large':
@@ -31,6 +38,7 @@ class Model(torch.nn.Module):
             torch.nn.init.xavier_uniform_(self.model.fc_linear.weight)
             self.model.adptive_avg_pool.netblock = POOLING_FROM_NAME[pooling]
             self.forward = self.forward_genet
+            self.extract_embeddings = self.extract_embeddings_genet
         elif arch == 'genet_normal':
             self.model = GENet.genet_normal(
                 pretrained=True,
@@ -42,6 +50,7 @@ class Model(torch.nn.Module):
             torch.nn.init.xavier_uniform_(self.model.fc_linear.weight)
             self.model.adptive_avg_pool.netblock = POOLING_FROM_NAME[pooling]
             self.forward = self.forward_genet
+            self.extract_embeddings = self.extract_embeddings_genet
         elif arch == "genet_small":
             self.model = GENet.genet_small(
                 pretrained=True,
@@ -53,9 +62,14 @@ class Model(torch.nn.Module):
             torch.nn.init.xavier_uniform_(self.model.fc_linear.weight)
             self.model.adptive_avg_pool.netblock = POOLING_FROM_NAME[pooling]
             self.forward = self.forward_genet
+            self.extract_embeddings = self.extract_embeddings_genet
         else:
             self.model = pt.models.__dict__[arch](num_classes=embedding_size, **model_params)
             self.pooling = POOLING_FROM_NAME[pooling]
+
+        self.loss_layer = LOSS_FROM_NAME[loss_layer](
+            in_features=embedding_size, 
+            **criterion_params).cuda()
 
     def forward(self, x):
         """
@@ -64,6 +78,17 @@ class Model(torch.nn.Module):
         Returns:
             Raw model logits
         """
+        x = self.extract_embeddings(x)
+        x = self.loss_layer(x)
+        return x
+
+    def forward_genet(self, x):
+        x = self.extract_embeddings(x)
+        x = self.loss_layer(x)
+        return x
+
+
+    def extract_embeddings(self, x):
         x = self.model.features(x)
         x = self.pooling(x)
         # Normalize before FC, so that it works as learned PCA
@@ -74,13 +99,12 @@ class Model(torch.nn.Module):
 
         # Normalize features
         x = torch.nn.functional.normalize(x, p=2)
-        return x
-
-    def forward_genet(self, x):
+    
+    def extract_embeddings_genet(self, x):
         x = self.model(x)
         # Normalize features
         x = torch.nn.functional.normalize(x, p=2)
-        return x
+
 
 # --------------------------------------
 # Pooling layers

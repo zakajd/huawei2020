@@ -120,8 +120,17 @@ class ContestMetricsCallback(pt.fit_wrapper.callbacks.Callback):
             self.state.metric_meters[name] = pt.utils.misc.AverageMeter(name=name)
 
     def on_loader_begin(self):
+        if not self.state.is_train:
+            self.state.model.forward = self.state.model.extract_embeddings
         self.target = []
         self.output = []
+
+    def on_loader_begin(self):
+        if not self.state.is_train:
+            self.state.model.forward = self.state.model.extract_embeddings
+        self.target = []
+        self.output = []
+
 
     def on_batch_end(self):
         if not self.state.is_train:

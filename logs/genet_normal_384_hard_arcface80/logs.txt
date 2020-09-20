@@ -62,3 +62,7 @@ TimeMeter profiling. Data time: 2.29E-03s. Model time: 5.84E-01s
 [09-20 10:41] - Train loss: 18.4971 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
 [09-20 10:41] - Val   loss: 99.6325 | Acc@1: 0.8889 | mAP@10: 0.8739 | target: 0.8814 | mAP@R: 0.8495
 [09-20 10:41] - Epoch 13 | lr 6.30e-04
+[09-20 10:50] - Train loss: 18.1796 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 10:50] - Val   loss: 99.6563 | Acc@1: 0.9004 | mAP@10: 0.8777 | target: 0.8890 | mAP@R: 0.8510
+[09-20 10:50] - Epoch 13: best target improved from 0.8869 to 0.8890
+[09-20 10:50] - Epoch 14 | lr 5.96e-04
