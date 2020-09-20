@@ -12,3 +12,86 @@
 [09-19 23:46] - Epoch 1 | lr 0.00e+00
 [09-19 23:52] - TimeMeter profiling. Data time: 5.87E-04s. Model time: 3.91E-01s 
 
+[09-19 23:56] - Train loss: 76.9190 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-19 23:56] - Val   loss: 78.0051 | Acc@1: 0.7086 | mAP@10: 0.7007 | target: 0.7047 | mAP@R: 0.6541
+[09-19 23:56] - Epoch  1: best target improved from -inf to 0.7047
+[09-19 23:56] - Epoch  1: best mAP@R improved from -inf to 0.6541
+[09-19 23:56] - Epoch 2 | lr 9.69e-03
+[09-20 00:05] - Train loss: 70.2437 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 00:05] - Val   loss: 81.5434 | Acc@1: 0.7570 | mAP@10: 0.7368 | target: 0.7469 | mAP@R: 0.6925
+[09-20 00:05] - Epoch  2: best target improved from 0.7047 to 0.7469
+[09-20 00:05] - Epoch  2: best mAP@R improved from 0.6541 to 0.6925
+[09-20 00:05] - Epoch 3 | lr 9.36e-03
+[09-20 00:15] - Train loss: 60.0707 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 00:15] - Val   loss: 84.8979 | Acc@1: 0.7650 | mAP@10: 0.7415 | target: 0.7532 | mAP@R: 0.7008
+[09-20 00:15] - Epoch  3: best target improved from 0.7469 to 0.7532
+[09-20 00:15] - Epoch  3: best mAP@R improved from 0.6925 to 0.7008
+[09-20 00:15] - Epoch 4 | lr 9.03e-03
+[09-20 00:29] - Train loss: 52.0612 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 00:29] - Val   loss: 87.1648 | Acc@1: 0.7975 | mAP@10: 0.7866 | target: 0.7921 | mAP@R: 0.7496
+[09-20 00:29] - Epoch  4: best target improved from 0.7532 to 0.7921
+[09-20 00:29] - Epoch  4: best mAP@R improved from 0.7008 to 0.7496
+[09-20 00:29] - Epoch 5 | lr 8.70e-03
+[09-20 00:40] - Train loss: 45.5225 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 00:40] - Val   loss: 89.3539 | Acc@1: 0.8283 | mAP@10: 0.8166 | target: 0.8225 | mAP@R: 0.7813
+[09-20 00:40] - Epoch  5: best target improved from 0.7921 to 0.8225
+[09-20 00:40] - Epoch  5: best mAP@R improved from 0.7496 to 0.7813
+[09-20 00:40] - Epoch 6 | lr 8.37e-03
+[09-20 00:50] - Train loss: 39.9340 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 00:50] - Val   loss: 91.3031 | Acc@1: 0.8187 | mAP@10: 0.8075 | target: 0.8131 | mAP@R: 0.7697
+[09-20 00:50] - Epoch 7 | lr 8.04e-03
+[09-20 00:59] - Train loss: 35.0890 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 00:59] - Val   loss: 91.6950 | Acc@1: 0.8477 | mAP@10: 0.8240 | target: 0.8358 | mAP@R: 0.7930
+[09-20 00:59] - Epoch  7: best target improved from 0.8225 to 0.8358
+[09-20 00:59] - Epoch  7: best mAP@R improved from 0.7813 to 0.7930
+[09-20 00:59] - Epoch 8 | lr 7.71e-03
+[09-20 01:09] - Train loss: 30.9426 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 01:09] - Val   loss: 93.9770 | Acc@1: 0.8442 | mAP@10: 0.8290 | target: 0.8366 | mAP@R: 0.7961
+[09-20 01:09] - Epoch  8: best target improved from 0.8358 to 0.8366
+[09-20 01:09] - Epoch  8: best mAP@R improved from 0.7930 to 0.7961
+[09-20 01:09] - Epoch 9 | lr 7.38e-03
+[09-20 01:19] - Train loss: 27.4598 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 01:19] - Val   loss: 95.0118 | Acc@1: 0.8644 | mAP@10: 0.8483 | target: 0.8563 | mAP@R: 0.8165
+[09-20 01:19] - Epoch  9: best target improved from 0.8366 to 0.8563
+[09-20 01:19] - Epoch  9: best mAP@R improved from 0.7961 to 0.8165
+[09-20 01:19] - Epoch 10 | lr 7.05e-03
+[09-20 01:29] - Train loss: 24.4359 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 01:29] - Val   loss: 96.0762 | Acc@1: 0.8592 | mAP@10: 0.8412 | target: 0.8502 | mAP@R: 0.8085
+[09-20 01:29] - Epoch 11 | lr 6.72e-03
+[09-20 01:39] - Train loss: 21.7864 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 01:39] - Val   loss: 96.4195 | Acc@1: 0.8592 | mAP@10: 0.8380 | target: 0.8486 | mAP@R: 0.8091
+[09-20 01:39] - Epoch 12 | lr 6.39e-03
+[09-20 01:49] - Train loss: 19.5727 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 01:49] - Val   loss: 97.3124 | Acc@1: 0.8706 | mAP@10: 0.8432 | target: 0.8569 | mAP@R: 0.8098
+[09-20 01:49] - Epoch 12: best target improved from 0.8563 to 0.8569
+[09-20 01:49] - Epoch 13 | lr 6.06e-03
+[09-20 01:59] - Train loss: 17.6131 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 01:59] - Val   loss: 98.3653 | Acc@1: 0.8468 | mAP@10: 0.8256 | target: 0.8362 | mAP@R: 0.7927
+[09-20 01:59] - Epoch 14 | lr 5.73e-03
+[09-20 02:10] - Train loss: 15.8750 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 02:10] - Val   loss: 98.6436 | Acc@1: 0.8380 | mAP@10: 0.8261 | target: 0.8321 | mAP@R: 0.7919
+[09-20 02:10] - Epoch 15 | lr 5.40e-03
+[09-20 02:25] - Train loss: 14.4114 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 02:25] - Val   loss: 99.1789 | Acc@1: 0.8292 | mAP@10: 0.8169 | target: 0.8231 | mAP@R: 0.7838
+[09-20 02:25] - Epoch 16 | lr 5.07e-03
+[09-20 02:38] - Train loss: 13.1419 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 02:38] - Val   loss: 99.6808 | Acc@1: 0.8283 | mAP@10: 0.8190 | target: 0.8237 | mAP@R: 0.7849
+[09-20 02:38] - Epoch 17 | lr 4.74e-03
+[09-20 03:01] - Train loss: 12.0403 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 03:01] - Val   loss: 100.1379 | Acc@1: 0.8327 | mAP@10: 0.8216 | target: 0.8272 | mAP@R: 0.7862
+[09-20 03:01] - Epoch 18 | lr 4.41e-03
+[09-20 03:18] - Train loss: 11.1189 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 03:18] - Val   loss: 100.5556 | Acc@1: 0.8178 | mAP@10: 0.8064 | target: 0.8121 | mAP@R: 0.7748
+[09-20 03:18] - Epoch 19 | lr 4.08e-03
+[09-20 03:30] - Train loss: 10.3254 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 03:30] - Val   loss: 100.3491 | Acc@1: 0.8301 | mAP@10: 0.8157 | target: 0.8229 | mAP@R: 0.7811
+[09-20 03:30] - Epoch 20 | lr 3.75e-03
+[09-20 03:41] - Train loss: 9.6005 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 03:41] - Val   loss: 101.0385 | Acc@1: 0.8231 | mAP@10: 0.8062 | target: 0.8146 | mAP@R: 0.7708
+[09-20 03:41] - Epoch 21 | lr 3.42e-03
+[09-20 04:09] - Train loss: 9.0157 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 04:09] - Val   loss: 101.0892 | Acc@1: 0.8266 | mAP@10: 0.8139 | target: 0.8202 | mAP@R: 0.7780
+[09-20 04:09] - Epoch 22 | lr 3.09e-03
+[09-20 04:34] - Train loss: 8.5413 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 04:34] - Val   loss: 101.2343 | Acc@1: 0.8169 | mAP@10: 0.8084 | target: 0.8126 | mAP@R: 0.7730
+[09-20 04:34] - Epoch 23 | lr 2.76e-03
