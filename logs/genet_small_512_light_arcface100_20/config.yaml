@@ -1,0 +1,41 @@
+arch: genet_small
+augmentation: light
+batch_size: 64
+config_file: configs/1_genet_small_512.yaml
+criterion: arcface
+criterion_params:
+  m: 20.0
+  out_features: 3097
+  s: 100.0
+debug: false
+ema_decay: 0.0
+embedding_size: 512
+freeze_bn: false
+model_params: {}
+name: genet_small_512_light_arcface100_20
+optim: adamw
+outdir: logs/genet_small_512_light_arcface100_20
+phases:
+- ep:
+  - 0
+  - 10
+  lr:
+  - 1.0e-06
+  - 0.01
+- ep:
+  - 10
+  - 100
+  lr:
+  - 0.01
+  - 1.0e-05
+pooling: gem
+resume: ''
+root: data/interim
+seed: 42
+size: 512
+tta: false
+use_fp16: true
+val_frequency: 1
+val_size: 768
+weight_decay: 1.0e-05
+workers: 6

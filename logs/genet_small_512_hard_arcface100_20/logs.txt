@@ -1,0 +1,49 @@
+[09-20 12:30] - Parameters used for training: Namespace(arch='genet_small', augmentation='hard', batch_size=64, config_file='configs/1_genet_small_512.yaml', criterion='arcface', criterion_params={'out_features': 3097, 's': 100.0, 'm': 20.0}, debug=False, ema_decay=0.0, embedding_size=512, freeze_bn=False, model_params={}, name='genet_small_512_hard_arcface100_20', optim='adamw', outdir='logs/genet_small_512_hard_arcface100_20', phases=[{'ep': [0, 10], 'lr': [1e-06, 0.001]}, {'ep': [10, 100], 'lr': [0.001, 1e-05]}], pooling='gem', resume='', root='data/interim', seed=42, size=512, tta=False, use_fp16=True, val_frequency=1, val_size=768, weight_decay=1e-05, workers=6)
+[09-20 12:30] - Model size: 7.24M
+[09-20 12:30] - Loss for this run is: AdditiveAngularMarginLoss(
+  (criterion): CrossEntropyLoss()
+)
+[09-20 12:30] - Using sizes {(512, 1024), (512, 512), (640, 512), (512, 768), (512, 640), (1024, 512), (768, 512), (680, 512), (904, 512), (512, 904), (512, 680)} for train
+[09-20 12:30] - Using sizes {(1024, 768), (1152, 768), (768, 1024), (960, 768), (768, 768), (768, 1536), (768, 1152), (1536, 768), (768, 960), (768, 1360), (1360, 768)} for validation
+[09-20 12:30] - Val size: 16656
+[09-20 12:30] - Train size: 51945
+[09-20 12:30] - Start training
+[09-20 12:30] - Start phase #1 from epoch 0 to epoch 10: {'ep': [0, 10], 'lr': [1e-06, 0.001], 'mom': [], 'mode': 'linear'}
+[09-20 12:30] - Epoch 1 | lr 0.00e+00
+[09-20 12:37] - 
+TimeMeter profiling. Data time: 3.30E-03s. Model time: 4.51E-01s 
+
+[09-20 12:40] - Train loss: 104.4861 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 12:40] - Val   loss: 103.0026 | Acc@1: 0.3483 | mAP@10: 0.3757 | target: 0.3620 | mAP@R: 0.3317
+[09-20 12:40] - Epoch  1: best target improved from -inf to 0.3620
+[09-20 12:40] - Epoch  1: best mAP@R improved from -inf to 0.3317
+[09-20 12:40] - Epoch 2 | lr 9.56e-05
+[09-20 12:49] - Train loss: 102.2723 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 12:49] - Val   loss: 102.1976 | Acc@1: 0.3333 | mAP@10: 0.3640 | target: 0.3487 | mAP@R: 0.3201
+[09-20 12:49] - Epoch 3 | lr 1.96e-04
+[09-20 12:59] - Train loss: 101.7476 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 12:59] - Val   loss: 101.9154 | Acc@1: 0.3263 | mAP@10: 0.3493 | target: 0.3378 | mAP@R: 0.3057
+[09-20 12:59] - Epoch 4 | lr 2.95e-04
+[09-20 13:09] - Train loss: 101.5132 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 13:09] - Val   loss: 101.7671 | Acc@1: 0.3131 | mAP@10: 0.3408 | target: 0.3269 | mAP@R: 0.2990
+[09-20 13:09] - Epoch 5 | lr 3.95e-04
+[09-20 13:20] - Train loss: 101.3822 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 13:20] - Val   loss: 101.6751 | Acc@1: 0.2963 | mAP@10: 0.3274 | target: 0.3119 | mAP@R: 0.2857
+[09-20 13:20] - Epoch 6 | lr 4.95e-04
+[09-20 13:30] - Train loss: 101.3022 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 13:30] - Val   loss: 101.6221 | Acc@1: 0.2937 | mAP@10: 0.3230 | target: 0.3083 | mAP@R: 0.2843
+[09-20 13:30] - Epoch 7 | lr 5.95e-04
+[09-20 13:39] - Train loss: 101.2517 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 13:39] - Val   loss: 101.5835 | Acc@1: 0.2981 | mAP@10: 0.3230 | target: 0.3105 | mAP@R: 0.2834
+[09-20 13:39] - Epoch 8 | lr 6.95e-04
+[09-20 13:50] - Train loss: 101.2140 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 13:50] - Val   loss: 101.5563 | Acc@1: 0.3025 | mAP@10: 0.3299 | target: 0.3162 | mAP@R: 0.2887
+[09-20 13:50] - Epoch 9 | lr 7.95e-04
+[09-20 14:00] - Train loss: 101.1842 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 14:00] - Val   loss: 101.5372 | Acc@1: 0.3104 | mAP@10: 0.3392 | target: 0.3248 | mAP@R: 0.2977
+[09-20 14:00] - Epoch 10 | lr 8.95e-04
+[09-20 14:11] - Train loss: 101.1584 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 14:11] - Val   loss: 101.5203 | Acc@1: 0.3474 | mAP@10: 0.3676 | target: 0.3575 | mAP@R: 0.3249
+[09-20 14:11] - Loading best model from previous phase
+[09-20 14:11] - Start phase #2 from epoch 10 to epoch 100: {'ep': [10, 100], 'lr': [0.001, 1e-05], 'mom': [], 'mode': 'linear'}
+[09-20 14:11] - Epoch 11 | lr 9.95e-04

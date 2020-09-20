@@ -1,0 +1,40 @@
+[09-20 14:17] - Parameters used for training: Namespace(arch='genet_small', augmentation='light', batch_size=64, config_file='configs/1_genet_small_512.yaml', criterion='arcface', criterion_params={'out_features': 3097, 's': 100.0, 'm': 20.0}, debug=False, ema_decay=0.0, embedding_size=512, freeze_bn=False, model_params={}, name='genet_small_512_light_arcface100_20', optim='adamw', outdir='logs/genet_small_512_light_arcface100_20', phases=[{'ep': [0, 10], 'lr': [1e-06, 0.01]}, {'ep': [10, 100], 'lr': [0.01, 1e-05]}], pooling='gem', resume='', root='data/interim', seed=42, size=512, tta=False, use_fp16=True, val_frequency=1, val_size=768, weight_decay=1e-05, workers=6)
+[09-20 14:18] - Model size: 7.24M
+[09-20 14:18] - Loss for this run is: AdditiveAngularMarginLoss(
+  (criterion): CrossEntropyLoss()
+)
+[09-20 14:18] - Using sizes {(512, 1024), (512, 512), (640, 512), (512, 768), (512, 640), (1024, 512), (768, 512), (680, 512), (904, 512), (512, 904), (512, 680)} for train
+[09-20 14:18] - Using sizes {(1024, 768), (1152, 768), (768, 1024), (960, 768), (768, 768), (768, 1536), (768, 1152), (1536, 768), (768, 960), (768, 1360), (1360, 768)} for validation
+[09-20 14:18] - Val size: 16656
+[09-20 14:18] - Train size: 51945
+[09-20 14:18] - Start training
+[09-20 14:18] - Start phase #1 from epoch 0 to epoch 10: {'ep': [0, 10], 'lr': [1e-06, 0.01], 'mom': [], 'mode': 'linear'}
+[09-20 14:18] - Epoch 1 | lr 0.00e+00
+[09-20 14:24] - 
+TimeMeter profiling. Data time: 3.90E-03s. Model time: 4.41E-01s 
+
+[09-20 14:27] - Train loss: 102.8708 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 14:27] - Val   loss: 101.8336 | Acc@1: 0.2848 | mAP@10: 0.3156 | target: 0.3002 | mAP@R: 0.2765
+[09-20 14:27] - Epoch  1: best target improved from -inf to 0.3002
+[09-20 14:27] - Epoch  1: best mAP@R improved from -inf to 0.2765
+[09-20 14:27] - Epoch 2 | lr 9.48e-04
+[09-20 14:36] - Train loss: 101.3233 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 14:36] - Val   loss: 101.5654 | Acc@1: 0.2972 | mAP@10: 0.3265 | target: 0.3118 | mAP@R: 0.2861
+[09-20 14:36] - Epoch  2: best target improved from 0.3002 to 0.3118
+[09-20 14:36] - Epoch  2: best mAP@R improved from 0.2765 to 0.2861
+[09-20 14:36] - Epoch 3 | lr 1.95e-03
+[09-20 14:46] - Train loss: 101.1483 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 14:46] - Val   loss: 101.5017 | Acc@1: 0.4330 | mAP@10: 0.4517 | target: 0.4423 | mAP@R: 0.4047
+[09-20 14:46] - Epoch  3: best target improved from 0.3118 to 0.4423
+[09-20 14:46] - Epoch  3: best mAP@R improved from 0.2861 to 0.4047
+[09-20 14:46] - Epoch 4 | lr 2.95e-03
+[09-20 14:55] - Train loss: 100.9950 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 14:55] - Val   loss: 101.4758 | Acc@1: 0.5988 | mAP@10: 0.5965 | target: 0.5976 | mAP@R: 0.5402
+[09-20 14:55] - Epoch  4: best target improved from 0.4423 to 0.5976
+[09-20 14:55] - Epoch  4: best mAP@R improved from 0.4047 to 0.5402
+[09-20 14:55] - Epoch 5 | lr 3.95e-03
+[09-20 15:04] - Train loss: 100.7192 | Acc@1: 0.0000 | mAP@10: 0.0000 | target: 0.0000 | mAP@R: 0.0000
+[09-20 15:04] - Val   loss: 101.6187 | Acc@1: 0.6905 | mAP@10: 0.6815 | target: 0.6860 | mAP@R: 0.6272
+[09-20 15:04] - Epoch  5: best target improved from 0.5976 to 0.6860
+[09-20 15:04] - Epoch  5: best mAP@R improved from 0.5402 to 0.6272
+[09-20 15:04] - Epoch 6 | lr 4.95e-03

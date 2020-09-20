@@ -32,6 +32,7 @@ def get_aug(aug_type="val", size=512):
         [
             albu.Flip(),
             albu.Cutout(num_holes=12, max_h_size=size // 16, max_w_size=size // 16, fill_value=0, p=0.5),
+            RandomCropThenScaleToOriginalSize(limit=0.2, p=1.0),
             NORM_TO_TENSOR
         ],
         p=1.0,
