@@ -1,0 +1,33 @@
+
+# General
+name: genet_small_384_hard_norm_ce
+# name: debug
+seed: 42
+root: data/interim
+batch_size: 128
+workers: 6
+augmentation: light
+debug: false
+resume: ""
+head_warmup_epochs: 0
+
+# Model
+arch: genet_small
+pooling: gem
+model_params: {}
+embedding_size: 512
+ema_decay: 0.0
+freeze_bn: false
+
+# Training
+optim: adamw
+use_fp16: true
+weight_decay: 0.0
+size: 384
+val_size: 512
+phases: [
+    {ep: [0, 4], lr: [0.000001, 0.01]}, # warmup
+    {ep: [4, 25], lr: [0.01, 0.0001], mode: cos},
+]
+criterion: normalized_ce
+criterion_params: {out_features: 2836, criterion: cross_entropy}

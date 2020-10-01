@@ -1,6 +1,6 @@
 
 # General
-name: genet_normal_512_light_arcface64_05
+name: genet_normal_384_light_arcface64_05
 # name: debug
 seed: 42
 root: data/interim
@@ -9,7 +9,7 @@ workers: 6
 augmentation: light
 debug: false
 resume: ""
-head_warmup_epochs: 2
+head_warmup_epochs: 1
 
 # Model
 arch: genet_normal
@@ -23,11 +23,11 @@ freeze_bn: false
 optim: adamw
 use_fp16: true
 weight_decay: 0.001
-size: 512
-val_size: 768
+size: 384
+val_size: 512
 phases: [
-    {ep: [0, 4], lr: [0, 0.001]}, # warmup
-    {ep: [4, 30], lr: [0.001, 0.00001], mode: cos},
+    {ep: [0, 3], lr: [0, 0.001]}, # warmup
+    {ep: [3, 20], lr: [0.001, 0.00001], mode: cos},
 ]
 criterion: arcface
 criterion_params: {out_features: 3097, s: 64.0, m: 0.5}

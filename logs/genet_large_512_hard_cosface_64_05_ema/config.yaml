@@ -1,0 +1,42 @@
+arch: genet_large
+augmentation: hard
+batch_size: 48
+config_file: configs/1_genet_large_512.yaml
+criterion: cosface
+criterion_params:
+  m: 0.5
+  out_features: 3097
+  s: 64.0
+debug: false
+ema_decay: 0.99
+embedding_size: 512
+freeze_bn: false
+head_warmup_epochs: 2
+model_params: {}
+name: genet_large_512_hard_cosface_64_05_ema
+optim: adamw
+outdir: logs/genet_large_512_hard_cosface_64_05_ema
+phases:
+- ep:
+  - 0
+  - 4
+  lr:
+  - 0
+  - 0.001
+- ep:
+  - 4
+  - 25
+  lr:
+  - 0.001
+  - 1.0e-05
+pooling: gem
+resume: ''
+root: data/interim
+seed: 42
+size: 512
+tta: false
+use_fp16: true
+val_frequency: 1
+val_size: 640
+weight_decay: 0.001
+workers: 5

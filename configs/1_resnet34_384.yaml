@@ -1,0 +1,34 @@
+
+# General
+name: resnet34_384_hard_norm_ce
+# name: debug
+seed: 42
+root: data/interim
+batch_size: 64
+workers: 6
+augmentation: light
+debug: false
+resume: ""
+head_warmup_epochs: 0
+
+# Model
+arch: genet_normal # resnet34
+pooling: avg # gem
+model_params: {}
+# embedding_size: 512
+embedding_size: 2836
+ema_decay: 0.0
+freeze_bn: false
+
+# Training
+optim: adamw
+use_fp16: true
+weight_decay: 0.0
+size: 384
+val_size: 512
+phases: [
+    {ep: [0, 4], lr: [0, 0.001]}, # warmup
+    {ep: [4, 100], lr: [0.001, 0.00001], mode: cos},
+]
+criterion: normalized_ce
+# criterion_params: {out_features: 2836, criterion: cross_entropy}

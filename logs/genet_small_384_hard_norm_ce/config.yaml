@@ -1,0 +1,42 @@
+arch: genet_small
+augmentation: light
+batch_size: 128
+config_file: configs/1_genet_small_384.yaml
+criterion: normalized_ce
+criterion_params:
+  criterion: cross_entropy
+  out_features: 2836
+debug: false
+ema_decay: 0.0
+embedding_size: 512
+freeze_bn: false
+head_warmup_epochs: 0
+model_params: {}
+name: genet_small_384_hard_norm_ce
+optim: adamw
+outdir: logs/genet_small_384_hard_norm_ce
+phases:
+- ep:
+  - 0
+  - 4
+  lr:
+  - 1.0e-06
+  - 0.01
+- ep:
+  - 4
+  - 25
+  lr:
+  - 0.01
+  - 0.0001
+  mode: cos
+pooling: gem
+resume: ''
+root: data/interim
+seed: 42
+size: 384
+tta: false
+use_fp16: true
+val_frequency: 1
+val_size: 512
+weight_decay: 0.0
+workers: 6
