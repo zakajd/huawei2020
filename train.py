@@ -15,7 +15,7 @@ from src.arg_parser import parse_args
 from src.datasets import get_dataloaders
 from src.losses import LOSS_FROM_NAME
 from src.models import Model
-from src.callbacks import ContestMetricsCallback
+from src.callbacks import ContestMetricsCallback, CheckpointSaver
 from src.utils import freeze_batch_norm
 
 
@@ -47,24 +47,27 @@ def main():
         embedding_size=hparams.embedding_size,
         pooling=hparams.pooling).cuda()
 
+    # Get loss
+    # loss = LOSS_FROM_NAME[hparams.criterion](in_features=hparams.embedding_size, **hparams.criterion_params).cuda()
+    loss = LOSS_FROM_NAME["cross_entropy"].cuda()
+    logger.info(f"Loss for this run is: {loss}")
+
     if hparams.resume:
         checkpoint = torch.load(hparams.resume, map_location=lambda storage, loc: storage.cuda())
         model.load_state_dict(checkpoint["state_dict"], strict=True)
+        loss.load_state_dict(checkpoint["loss"], strict=True)
 
     if hparams.freeze_bn:
         freeze_batch_norm(model)
 
     # Get optimizer
-    optim_params = pt.utils.misc.filter_bn_from_wd(model)
+    # optim_params = pt.utils.misc.filter_bn_from_wd(model)
+    optim_params = list(loss.parameters()) + list(model.parameters()) # add loss params
     optimizer = optimizer_from_name(hparams.optim)(optim_params, lr=0, weight_decay=hparams.weight_decay, amsgrad=True)
 
     num_params = pt.utils.misc.count_parameters(model)[0]
     logger.info(f"Model size: {num_params / 1e6:.02f}M")
     # logger.info(model)
-
-    # Get loss
-    loss = LOSS_FROM_NAME[hparams.criterion](in_features=hparams.embedding_size, **hparams.criterion_params).cuda()
-    logger.info(f"Loss for this run is: {loss}")
 
     # Scheduler is an advanced way of planning experiment
     sheduler = pt.fit_wrapper.callbacks.PhasesScheduler(hparams.phases)
@@ -95,13 +98,14 @@ def main():
         criterion=loss,
         callbacks=[
             # pt_clb.BatchMetrics([pt.metrics.Accuracy(topk=1)]),
-            ContestMetricsCallback(is_query=val_is_query[: 320] if hparams.debug else val_is_query),
+            ContestMetricsCallback(is_query=val_is_query[: 1280] if hparams.debug else val_is_query),
             pt_clb.Timer(),
             pt_clb.ConsoleLogger(),
             pt_clb.FileLogger(),
             TB_callback,
-            pt_clb.CheckpointSaver(hparams.outdir, save_name="model.chpn", monitor="target", mode="max"),
-            pt_clb.CheckpointSaver(hparams.outdir, save_name="model_mapr.chpn", monitor="mAP@R", mode="max"),
+            CheckpointSaver(hparams.outdir, save_name="model.chpn", monitor="target", mode="max"),
+            CheckpointSaver(hparams.outdir, save_name="model_mapr.chpn", monitor="mAP@R", mode="max"),
+            CheckpointSaver(hparams.outdir, save_name="model_loss.chpn"),
             sheduler,
             # EMA must go after other checkpoints
             pt_clb.ModelEma(model, hparams.ema_decay) if hparams.ema_decay else pt_clb.Callback(),
@@ -109,26 +113,58 @@ def main():
         use_fp16=hparams.use_fp16,  # use mixed precision by default.  # hparams.opt_level != "O0",
     )
 
-    # Train
-    for i, phase in enumerate(sheduler.phases):
-        start_epoch, end_epoch = phase["ep"]
-        logger.info(f"Start phase #{i + 1} from epoch {start_epoch} to epoch {end_epoch}: {phase}")
+    if hparams.head_warmup_epochs > 0:
+        #Freeze model
+        for p in model.parameters():
+            p.requires_grad = False
 
         runner.fit(
             train_loader,
-            val_loader=val_loader,
-            start_epoch=start_epoch,
-            epochs=end_epoch,
+            # val_loader=val_loader,
+            epochs=hparams.head_warmup_epochs,
             steps_per_epoch=20 if hparams.debug else None,
-            val_steps=20 if hparams.debug else None,
+            # val_steps=20 if hparams.debug else None,
         )
 
-        logger.info(f"Loading best model from previous phase")
-        checkpoint = torch.load(os.path.join(hparams.outdir, f"model.chpn"))
-        model.load_state_dict(checkpoint["state_dict"], strict=True)
+        # Unfreeze model
+        for p in model.parameters():
+            p.requires_grad = True
+
+        if hparams.freeze_bn:
+            freeze_batch_norm(model)
+
+        # Re-init to avoid nan's in loss
+        optim_params = list(loss.parameters()) + list(model.parameters()) 
+
+        optimizer = optimizer_from_name(hparams.optim)(
+            optim_params,
+            lr=0,
+            weight_decay=hparams.weight_decay,
+            amsgrad=True
+        )
+
+        runner.state.model = model
+        runner.state.optimizer = optimizer
+        runner.state.criterion = loss
+
+    # Train
+    runner.fit(
+        train_loader,
+        # val_loader=val_loader,
+        start_epoch=hparams.head_warmup_epochs,
+        epochs=sheduler.tot_epochs,
+        steps_per_epoch=20 if hparams.debug else None,
+        # val_steps=20 if hparams.debug else None,
+    )
+
+    logger.info(f"Loading best model")
+    checkpoint = torch.load(os.path.join(hparams.outdir, f"model.chpn"))
+    model.load_state_dict(checkpoint["state_dict"], strict=True)
+    # runner.state.model = model
+    # loss.load_state_dict(checkpoint["loss"], strict=True)
 
     # Evaluate
-    loss, [acc1, map10, target, mapR] = runner.evaluate(
+    _, [acc1, map10, target, mapR] = runner.evaluate(
         val_loader,
         steps=20 if hparams.debug else None,
     )
@@ -145,6 +181,7 @@ def main():
     }
 
     # Convert all lists / dicts to avoid TB error
+    hparams.phases
     hparams.phases = str(hparams.phases)
     hparams.model_params = str(hparams.model_params)
     hparams.criterion_params = str(hparams.criterion_params)

@@ -44,7 +44,8 @@ def get_dataloaders(
         root=root, transform=train_aug, train=True, size=size)
 
     gb_sampler = GroupedBatchSampler(
-        sampler=torch.utils.data.sampler.RandomSampler(train_dataset),
+        sampler=torch.utils.data.sampler.SequentialSampler(train_dataset),
+        # sampler=torch.utils.data.sampler.RandomSampler(train_dataset),
         group_ids=train_dataset.group_ids,
         batch_size=batch_size,
         drop_uneven=True,
@@ -193,15 +194,18 @@ class ClassificationDataset(torch.utils.data.Dataset):
         Returns:
             tuple: (image, target) where target is index of the target class.
         """
-        # logger.info(f"Index {index}")
-        image = cv2.imread(self.filenames[index], cv2.IMREAD_COLOR)
-        # logger.info(f"{index} Size before reshape {image.shape}")
-        image = cv2.resize(image, self.sizes[index])
-        # logger.info(f"{index} Size after reshape {image.shape}")
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = self.transform(image=image)["image"]
+        try: 
+            # logger.info(f"Index {index}")
+            image = cv2.imread(self.filenames[index], cv2.IMREAD_COLOR)
+            # logger.info(f"{index} Size before reshape {image.shape}")
+            image = cv2.resize(image, self.sizes[index])
+            # logger.info(f"{index} Size after reshape {image.shape}")
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            image = self.transform(image=image)["image"]
 
-        target = self.targets[index]
+            target = self.targets[index]
+        except:
+            logger.error(f"Not found: {self.filenames[index]}")
 
         return image, target
 
@@ -220,11 +224,11 @@ class TestDataset(torch.utils.data.Dataset):
 
     _aspect_ratios = np.array([2, 16 / 9, 3 / 2, 4 / 3, 5 / 4, 1, 4 / 5, 3 / 4, 2 / 3, 9 / 16, 1 / 2])
 
-    def __init__(self, root="data/interim", transform=None, size=512, test_type="A"):
-        df = pd.read_csv(os.path.join(root, "test_A.csv"))
+    def __init__(self, root="data/interim", transform=None, size=512, test_type="B"):
+        df = pd.read_csv(os.path.join(root, "test_B.csv"))
 
         self.filenames = [
-            os.path.join(root, f"test_data_A_{size}", path) for path in df["file_path"].values.tolist()]
+            os.path.join(root, f"test_data_B_{size}", path) for path in df["file_path"].values.tolist()]
 
         # Сheck that all images exist
         assert map(lambda x: pathlib.Path(x).exists(), self.filenames), "Found missing images!"
@@ -260,10 +264,15 @@ class TestDataset(torch.utils.data.Dataset):
         Returns:
             tuple: (image, target) where target is index of the target class.
         """
-        image = cv2.imread(self.filenames[index], cv2.IMREAD_COLOR)
-        image = cv2.resize(image, self.sizes[index])
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = self.transform(image=image)["image"]
+        try:
+
+            image = cv2.imread(self.filenames[index], cv2.IMREAD_COLOR)
+            image = cv2.resize(image, self.sizes[index])
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            image = self.transform(image=image)["image"]
+        except:
+            logger.error(f"Not found: {self.filenames[index]}")
+
         return image
 
     def __len__(self):

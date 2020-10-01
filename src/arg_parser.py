@@ -1,5 +1,7 @@
 import os
+import pathlib
 import configargparse as argparse
+import pytorch_tools as pt
 
 
 def get_parser():
@@ -18,6 +20,12 @@ def get_parser():
     add_arg("--root", type=str, help="Path to train data")
     add_arg("--debug", dest="debug", default=False, action="store_true", help="Make short epochs")
     add_arg("--resume", default="", type=str, help="Path to checkpoint to start from")
+    add_arg(
+        "--head_warmup_epochs",
+        default=0, 
+        type=int,
+        help="Freeze model and train only classification head"
+    )
 
     # DATALOADER
     add_arg("--batch_size", type=int, help="Batch size")
@@ -77,8 +85,11 @@ def parse_args():
     if os.path.exists(outdir):
         version = 1
         while os.path.exists(outdir):
-            outdir = os.path.join("logs", f"{args.name}_{version}")
+            outdir = os.path.join("logs", f"{args.name}-{version}")
             version += 1
-
     args.outdir = outdir
+
+    # Add timestamp to folder name
+    # timestamp = pt.utils.misc.get_timestamp()
+    # args.outdir = os.path.join("logs/", args.name + "_" + timestamp if args.name else timestamp)
     return args

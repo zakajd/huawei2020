@@ -2,7 +2,6 @@ https://digix-algo-challenge-sg.obs.ap-southeast-3.myhuaweicloud.com/2020/cv/6rK
 https://digix-algo-challenge-sg.obs.ap-southeast-3.myhuaweicloud.com/2020/cv/6rKDTsB6sX8A1O2DA2IAq7TgHPdSPxJF/test_data_A.zip
 https://digix-algo-challenge-sg.obs.ap-southeast-3.myhuaweicloud.com/2020/cv/6rKDTsB6sX8A1O2DA2IAq7TgHPdSPxJF/test_data_B.zip
 
-
 .PHONY: all clean load preprocess # train inference 
 
 PYTHON = python3

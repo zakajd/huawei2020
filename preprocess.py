@@ -9,7 +9,7 @@ import shutil
 import functools
 from hashlib import md5
 import multiprocessing
-from pathlib import Path
+import pathlib
 import configargparse as argparse
 
 import torch
@@ -56,7 +56,7 @@ def resize_images(files, folder, size):
 
     # Change all data formats to jpg
     out_filenames = list(map(
-        lambda x: Path("data/interim", f"{folder}_{size}", os.path.relpath(x, start=f"data/raw/{folder}")), files)
+        lambda x: pathlib.Path("data/interim", f"{folder}_{size}", os.path.relpath(x, start=f"data/raw/{folder}")), files)
     )
     resize_function = functools.partial(resize_one_image, size=size)
 
@@ -120,6 +120,8 @@ def main(hparams):
     # Replace duplicate classes
     df["label"] = df["label"].replace(LABEL_MAP)
     df.drop_duplicates(subset="hash_md5", keep="first", inplace=True)
+    # Re-rank labels so that they go from 0 to ...
+    # df["label"] = df["label"].apply(lambda x: list(unique_labels).index(x))
     logger.info(f"Unique labels: {len(df['label'].unique())}")
 
     # Get original image size as an additional feature
@@ -152,7 +154,7 @@ def main(hparams):
 
     # logger.info("Resizing train images...")
     # _ = resize_images(
-    #     files=train_filenames,
+    #     files=df["full_path"],
     #     folder=f"train_data",
     #     size=hparams.size,)
 
@@ -169,7 +171,7 @@ def main(hparams):
     # }
     # df_test = pd.DataFrame(data=df_test_data)
 
-    # Get original image size as an additional feature
+    # # Get original image size as an additional feature
     # result = get_sizes(test_A_filenames)
     # df_test.sort_values(by="file_path", inplace=True)
     # sizes = [str(x[0]) for x in sorted(result, key=lambda x: x[1])]
@@ -177,7 +179,7 @@ def main(hparams):
     # df_test["aspect_ratio"] = [round(x[0][0] / x[0][1], 4) for x in sorted(result, key=lambda x: x[1])]
     # df_test["is_query"] = torch.tensor([0.0] * len(test_A_gallery_files) + [1.0] * len(test_A_query_files))
 
-    # Save results
+    # # Save results
     # df_test.to_csv(hparams.output_path / "test_A.csv", index=None)
 
     # logger.info("Resizing test A images...")
@@ -187,18 +189,37 @@ def main(hparams):
     #     size=hparams.size,)
 
     # Test B
-    # test_B_query_files = sorted((hparams.root / "test_data_B" / "query").glob("*.jpg"))
-    # test_B_gallery_files = sorted((hparams.root / "test_data_B" / "gallery").glob("*.jpg"))
-    # test_B_filenames = test_B_query_files + test_B_gallery_files
+    logger.info("Test B")
+    test_B_query_files = sorted((hparams.root / "test_data_B" / "query").glob("*.jpg"))
+    test_B_gallery_files = sorted((hparams.root / "test_data_B" / "gallery").glob("*.jpg"))
+    test_B_filenames = test_B_query_files + test_B_gallery_files
 
-    # shutil.rmtree(hparams.output_path / f"test_data_B_{hparams.size}", ignore_errors=True)
-    # (hparams.output_path / f"test_data_B_{hparams.size}").mkdir()
+    shutil.rmtree(hparams.output_path / f"test_data_B_{hparams.size}", ignore_errors=True)
+    (hparams.output_path / f"test_data_B_{hparams.size}").mkdir()
+
+    test_B_files = [p.relative_to(hparams.root / "test_data_B") for p in test_B_filenames]
+    df_test_data = {
+        "file_path": test_B_files,
+        "full_path": [os.path.join("data/interim/test_data_B_512", p) for p in test_B_files],
+    }
+    df_test = pd.DataFrame(data=df_test_data)
+
+    # Get original image size as an additional feature
+    result = get_sizes(test_B_filenames)
+    df_test.sort_values(by="file_path", inplace=True)
+    sizes = [str(x[0]) for x in sorted(result, key=lambda x: x[1])]
+    df_test["original_size"] = sizes
+    df_test["aspect_ratio"] = [round(x[0][0] / x[0][1], 4) for x in sorted(result, key=lambda x: x[1])]
+    df_test["is_query"] = torch.tensor([0.0] * len(test_B_gallery_files) + [1.0] * len(test_B_query_files))
+
+    # Save results
+    df_test.to_csv(hparams.output_path / "test_B.csv", index=None)
 
     # logger.info("Resizing test B images...")
-    # test_outfilenames = resize_images(
+    # _ = resize_images(
     #     files=test_B_filenames,
     #     folder=f"test_data_B",
-    #     size=hparams.size)
+    #     size=hparams.size,)
 
 if __name__ == "__main__":
     # Parse args
@@ -210,14 +231,14 @@ if __name__ == "__main__":
     add_arg = parser.add_argument
 
     # base args
-    add_arg("--output_path", type=Path, default="data/interim", help="Path to save files")
-    add_arg("--root", type=Path, default="data/raw", help="Path to all raw data as provided by organizers")
+    add_arg("--output_path", type=pathlib.Path, default="data/interim", help="Path to save files")
+    add_arg("--root", type=pathlib.Path, default="data/raw", help="Path to all raw data as provided by organizers")
 
     # Resize
     add_arg("--size", type=int, default=256, help="Size of min side after resize")
 
     # Split
-    add_arg("--val_pct", type=float, default=0.2, help="Part of train data used for validation")
+    add_arg("--val_pct", type=float, default=0.3, help="Part of train data used for validation")
 
     # Setup logger
     config = {"handlers": [{"sink": sys.stdout, "format": "{time:[HH:mm]}:{message}"}]}

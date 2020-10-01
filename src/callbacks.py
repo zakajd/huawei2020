@@ -4,24 +4,43 @@ from torch.cuda import amp
 from sklearn.metrics import roc_auc_score, average_precision_score
 # from loguru import logger
 # import numpy as np
+from src.models import kNN
 
 
-def cmc_score_count(distances: torch.Tensor, conformity_matrix: torch.Tensor, topk: int = 1) -> float:
+def accuracy_at_1(perm_matrix: torch.Tensor, conformity_matrix: torch.Tensor) -> float:
     """
     From https://github.com/catalyst-team/catalyst
-    Function to count CMC from distance matrix and conformity matrix.
+    Function to count Accuracy from perm_matrix and conformity matrix.
 
     Args:
-        distances: distance matrix shape of (n_embeddings_x, n_embeddings_y)
+        perm_matrix: Permutation matrix shape of (n_embeddings_x, n_embeddings_y)
         conformity_matrix: binary matrix with 1 on same label pos
-            and 0 otherwise
+            and 0 otherwise. Shape (n_embeddings_x, n_embeddings_y)
+
+    Returns:
+        Acc@1
+    """
+    conformity_matrix = torch.gather(conformity_matrix, 1, perm_matrix)
+    conformity_matrix = conformity_matrix.type(torch.float)
+    return conformity_matrix[:, 0].mean().item()
+
+
+def cmc_score_count(perm_matrix: torch.Tensor, conformity_matrix: torch.Tensor, topk: int = 1) -> float:
+    """
+    From https://github.com/catalyst-team/catalyst
+    Function to count CMC from perm_matrix and conformity matrix.
+
+    Args:
+        perm_matrix: Permutation matrix shape of (n_embeddings_x, n_embeddings_y)
+        conformity_matrix: binary matrix with 1 on same label pos
+            and 0 otherwise. Shape (n_embeddings_x, n_embeddings_y)
         topk: number of top examples for cumulative score counting
 
     Returns:
         cmc score
     """
-    perm_matrix = torch.argsort(distances)
     position_matrix = torch.argsort(perm_matrix)
+    conformity_matrix = torch.gather(conformity_matrix, 1, perm_matrix)
     conformity_matrix = conformity_matrix.type(torch.bool)
 
     position_matrix[~conformity_matrix] = (
@@ -33,12 +52,12 @@ def cmc_score_count(distances: torch.Tensor, conformity_matrix: torch.Tensor, to
     return k_mask.mean().item()
 
 
-def map_at_k(distances: torch.Tensor, conformity_matrix: torch.Tensor, topk: int = 10) -> float:
+def map_at_k(perm_matrix: torch.Tensor, conformity_matrix: torch.Tensor, topk: int = 10) -> float:
     """Compute mean Average Precision (mAP@k) from distance matrix and conformity matrix.
     If topk parameter is None, returns mAP@R, see [1] for details.
 
     Args:
-        distances: distance matrix shape of (n_embeddings_x, n_embeddings_y)
+        perm_matrix: Permutation matrix shape of (n_embeddings_x, n_embeddings_y)
         conformity_matrix: binary matrix with 1 on same label pos
             and 0 otherwise
         topk: number of top examples for AP counting.
@@ -50,7 +69,6 @@ def map_at_k(distances: torch.Tensor, conformity_matrix: torch.Tensor, topk: int
         [1] A Metric Learning Reality Check
             https://arxiv.org/pdf/2003.08505.pdf
     """
-    perm_matrix = torch.argsort(distances)
     conformity_matrix = conformity_matrix.type(torch.double)
 
     if topk is None:  # Compute mAP@R
@@ -58,13 +76,16 @@ def map_at_k(distances: torch.Tensor, conformity_matrix: torch.Tensor, topk: int
         R = conformity_matrix.sum(dim=1)
         R_max = int(R.max())
     else:  # Compute mAP@k
-        R = torch.ones(distances.size(0)) * topk
+        R = torch.ones(perm_matrix.size(0)) * topk
         R_max = topk
+    R_max = min(R_max, perm_matrix.shape[1])
 
-    R_mask = torch.cumsum(torch.ones((distances.size(0), R_max)), dim=1) <= R.reshape(-1, 1)
+    R_mask = torch.cumsum(torch.ones(
+        (perm_matrix.size(0), R_max)), dim=1) <= R.reshape(-1, 1)
 
     # Sort matrix
-    conformity_matrix = torch.gather(conformity_matrix, 1, perm_matrix)[:, :R_max] * R_mask
+    conformity_matrix = torch.gather(conformity_matrix, 1, perm_matrix)[
+        :, :R_max] * R_mask
     precision = torch.cumsum(conformity_matrix, dim=-1) * conformity_matrix \
         / torch.arange(start=1, end=R_max + 1)
     average_precision = precision.sum(dim=-1) / conformity_matrix.sum(dim=-1)
@@ -95,8 +116,10 @@ def cmc_score(
     Returns:
         cmc score
     """
+    # Slow for big number of queries! Use FAISS instead
     distances = torch.cdist(query_embeddings, gallery_embeddings)
-    return cmc_score_count(distances, conformity_matrix, topk)
+    perm_matrix = torch.argsort(distances)
+    return cmc_score_count(perm_matrix, conformity_matrix, topk)
 
 
 class ContestMetricsCallback(pt.fit_wrapper.callbacks.Callback):
@@ -117,7 +140,8 @@ class ContestMetricsCallback(pt.fit_wrapper.callbacks.Callback):
 
     def on_begin(self):
         for name in self.metric_names:
-            self.state.metric_meters[name] = pt.utils.misc.AverageMeter(name=name)
+            self.state.metric_meters[name] = pt.utils.misc.AverageMeter(
+                name=name)
 
     def on_loader_begin(self):
         self.target = []
@@ -151,37 +175,43 @@ class ContestMetricsCallback(pt.fit_wrapper.callbacks.Callback):
             # Shape (query_size x gallery_size)
             conformity_matrix = query_labels.reshape(-1, 1) == gallery_labels
 
-            # Matrix of pairwise cosin distances
-            distances = torch.cdist(query_embeddings, gallery_embeddings)
+            # Init kNN and find neighbours
+            knn = kNN(embeddings=gallery_embeddings, distance='cosine')
+            # Get distance matrix of shape (query_length x 1000)
+            distances, perm_matrix = knn.search(query_embeddings, topk=1000)
 
-            acc1 = cmc_score_count(distances, conformity_matrix, topk=1)
-            map10 = map_at_k(distances, conformity_matrix, topk=10)
+            # Compute validation metrics
+            acc1 = accuracy_at_1(perm_matrix, conformity_matrix)
+            map10 = map_at_k(perm_matrix, conformity_matrix, topk=10)
             target_metric = 0.5 * acc1 + 0.5 * map10
-            mapR = map_at_k(distances, conformity_matrix, topk=None)
+            mapR = map_at_k(perm_matrix, conformity_matrix, topk=None)
 
             self.metrics = [acc1, map10, target_metric, mapR]
 
             for metric, name in zip(self.metrics, self.metric_names):
                 self.state.metric_meters[name].update(metric)
 
-# Add TB callback that shows cluster images, ROC AUC curves and ...
 
+class CheckpointSaver(pt.fit_wrapper.callbacks.CheckpointSaver):
+    """
+    Save best model every epoch based on loss
+    Args:
+        save_dir (str): path to folder where to save the model
+        save_name (str): name of the saved model. can additionally
+            add epoch and metric to model save name
+        monitor (str): quantity to monitor. Implicitly prefers validation metrics over train. One of:
+            `loss` or name of any metric passed to the runner.
+        mode (str): one of "min" of "max". Whether to decide to save based
+            on minimizing or maximizing loss
+        include_optimizer (bool): if True would also save `optimizers` state_dict.
+            This increases checkpoint size 2x times.
+        verbose (bool): If `True` reports each time new best is found
+    """
 
-class RocAucMeter(torch.nn.Module):
-    name = "AUC"
-    metric_func = roc_auc_score
-
-    def __init__(self):
-        super().__init__()
-        self.name = self.__class__.name
-
-    def forward(self, y_pred, y_true):
-        y_pred = y_pred.float().sigmoid().numpy()
-        y_true = y_true.cpu().numpy()
-        score = self.__class__.metric_func(y_true.flatten(), y_pred.flatten())
-        return score
-
-
-class APScoreMeter(RocAucMeter):
-    name = "AP"
-    metric_func = average_precision_score
+    def _save_checkpoint(self, path):
+        save_dict = {
+            "epoch": self.state.epoch,
+            "state_dict": self.state.model.state_dict(),
+            "loss": self.state.criterion.state_dict()
+        }
+        torch.save(save_dict, path)

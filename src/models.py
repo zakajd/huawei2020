@@ -2,8 +2,12 @@
 Most functions in this file are taken from:
 https://github.com/lyakaap/Landmark2019-1st-and-3rd-Place-Solution/
 """
+import os
 import sys
+import time
+import faiss
 import torch
+import numpy as np
 import pytorch_tools as pt
 from loguru import logger
 
@@ -17,7 +21,7 @@ class Model(torch.nn.Module):
     Returns:
         x: L2 NORMALIZED features, ready to be used as image embeddings
     """
-    def __init__(self, arch='resnet50', embedding_size=512, pooling="avg", model_params={},):
+    def __init__(self, arch='resnet50', embedding_size=512, pooling="avg", model_params={}, normalize=True):
         # All models return raw logits
         super().__init__()
         if arch == 'genet_large':
@@ -56,6 +60,7 @@ class Model(torch.nn.Module):
         else:
             self.model = pt.models.__dict__[arch](num_classes=embedding_size, **model_params)
             self.pooling = POOLING_FROM_NAME[pooling]
+        self.normalize = normalize
 
     def forward(self, x):
         """
@@ -64,15 +69,18 @@ class Model(torch.nn.Module):
         Returns:
             Raw model logits
         """
+        # return self.model(x)
+        # x = self.model
         x = self.model.features(x)
         x = self.pooling(x)
-        # Normalize before FC, so that it works as learned PCA
-        # x = torch.nn.functional.normalize(x, p=2)
+        # # Normalize before FC, so that it works as learned PCA
+        # if self.normalize:
+        #     x = torch.nn.functional.normalize(x, p=2)
         x = torch.flatten(x, 1)
-        x = self.model.dropout(x)
+        # x = self.model.dropout(x)
         x = self.model.last_linear(x)
 
-        # Normalize features
+        # # Normalize features
         x = torch.nn.functional.normalize(x, p=2)
         return x
 
@@ -116,3 +124,52 @@ POOLING_FROM_NAME = {
     "gem2": GeM(p=2.0, eps=1e-6),
     "gem25": GeM(p=2.5, eps=1e-6),
 }
+
+
+class kNN(object):
+    """k Nearest Neighbors class.
+    Inits database and performes search in it.
+    Uses Numpy arrays, not PyTorch tensors
+
+    Args:
+        embeddings: Matrix of gallery embeddings. Shape (n_emb x emb_dim)
+        distance: Distance metric, one of {'cosine', 'euclidean'}
+    """
+
+    def __init__(self, embeddings: torch.Tensor, distance: str = 'cosine', use_gpu=False):
+        embeddings = np.array(embeddings)
+        if embeddings.dtype != np.float32:
+            embeddings = embeddings.astype(np.float32)
+        self.N, self.embedding_size = embeddings.shape
+
+        # Store embeddings, so that they can be easyly found by index
+        self.embeddings = embeddings if embeddings.flags['C_CONTIGUOUS'] \
+                               else np.ascontiguousarray(embeddings)
+
+        self.index = {
+            'cosine': faiss.IndexFlatIP,
+            'euclidean': faiss.IndexFlatL2
+        }[distance](self.embedding_size)
+        if use_gpu:
+            self.index = faiss.index_cpu_to_all_gpus(self.index)
+            
+        # Add data to index in batches
+        for i in range(0, self.N, 10000):
+            self.index.add(self.embeddings[i: i + 10000])
+            
+
+    def search(self, queries, topk):
+        """Search in database
+        Args:
+            queries: Matrix of query embeddings. Shape (n_que x emb_dim)
+            topk: get top-k results
+        Returns:
+            distances: similarities of k-NN. Shape (n_que x topk)
+            ids: indexes of k-NN from gallery. Shape (n_que x topk)
+        """
+        queries = np.asarray(queries)
+        queries = queries.astype(np.float32)
+        queries = np.ascontiguousarray(queries)
+        distances, ids = self.index.search(queries, topk)
+        return torch.tensor(distances), torch.tensor(ids)
+

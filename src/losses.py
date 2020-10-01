@@ -2,6 +2,7 @@ import math
 import functools
 
 import torch
+import pytorch_tools as pt
 # from loguru import logger
 
 
@@ -40,7 +41,7 @@ class AngularPenaltySMLoss(torch.nn.Module):
         'cosface': (30.0, 0.4),
     }
 
-    def __init__(self, in_features=512, out_features=3088, loss_type='arcface', s=None, m=None):
+    def __init__(self, in_features=512, out_features=3088, loss_type='arcface', s=None, m=None, criterion=None):
         super().__init__()
         assert loss_type in self._types, \
             f"Loss type must be in ['arcface', 'sphereface', 'cosface'], got {loss_type}"
@@ -50,8 +51,10 @@ class AngularPenaltySMLoss(torch.nn.Module):
         self.s = self.s if not s else s
         self.m = self.m if not m else m
 
-        self.fc = torch.nn.Linear(in_features, out_features, bias=False)
-        torch.nn.init.xavier_uniform_(self.fc.weight)
+        self.weight = torch.nn.Parameter(torch.FloatTensor(out_features, in_features))
+        torch.nn.init.xavier_uniform_(self.weight)
+        # self.weight = torch.nn.Linear(in_features, out_features, bias=False)
+        # torch.nn.init.xavier_uniform_(self.fc.weight)
 
         self.loss_type = loss_type
 
@@ -65,12 +68,14 @@ class AngularPenaltySMLoss(torch.nn.Module):
             y_true: Class labels, not one-hot encoded
         """
         # Normalize weight
-        for W in self.fc.parameters():
-            W = torch.nn.functional.normalize(W, p=2)
+        # torch.nn.functional.linear(features, torch.nn.functional.normalize(self.weight)).to(features)
+        # for W in self.fc.parameters():
+        #     W = torch.nn.functional.normalize(W, p=2)
 
         # logger.info(f"Loss input shapes {features.shape}, {y_true.shape}")
         # Black magic of matrix calculus
-        wf = self.fc(features)
+        # wf = self.fc(features)
+        wf = torch.nn.functional.linear(features, torch.nn.functional.normalize(self.weight))
         if self.loss_type == 'cosface':
             numerator = self.s * (torch.diagonal(wf.transpose(0, 1)[y_true]) - self.m)
         elif self.loss_type == 'arcface':
@@ -85,6 +90,35 @@ class AngularPenaltySMLoss(torch.nn.Module):
         L = numerator - torch.log(denominator)
         return -torch.mean(L)
 
+class NormalizedCELoss(torch.nn.Module):
+    r"""
+
+    Args:
+        in_features: Size of model discriptor
+        out_features: Number of classes
+        criterion: One of {'cross_entropy', 'focal', 'reduced_focal'}
+
+    """
+    def __init__(self, in_features, out_features, s=30.0, m=0.50, criterion="cross_entropy"):
+        super().__init__()
+        self.in_features = in_features
+        self.out_features = out_features
+
+        self.weight = torch.nn.Parameter(torch.FloatTensor(out_features, in_features))
+        torch.nn.init.xavier_uniform_(self.weight)
+        self.criterion = LOSS_FROM_NAME[criterion]
+
+    def forward(self, features, y_true):
+        """
+        Args:
+            features: L2 normalized logits from the model
+            y_true: Class labels, not one-hot encoded
+        """
+        logits = torch.nn.functional.linear(features, torch.nn.functional.normalize(self.weight)).to(features)
+        # logits = torch.nn.functional.linear(features, self.weight).to(features)
+        loss = self.criterion(logits, y_true)
+        return loss
+    
 
 class AdditiveAngularMarginLoss(torch.nn.Module):
     r"""PyTorch implementation of
@@ -95,6 +129,7 @@ class AdditiveAngularMarginLoss(torch.nn.Module):
         out_features: Number of classes
         s: Input features norm
         m: Margin value
+        criterion: One of {'cross_entropy', 'focal', 'reduced_focal'}
 
     Reference:
         2. ArcFace: Additive Angular Margin Loss for Deep Face Recognition
@@ -104,7 +139,7 @@ class AdditiveAngularMarginLoss(torch.nn.Module):
         github.com/cvqluu/Angular-Penalty-Softmax-Losses-Pytorch
         github.com/lyakaap/Landmark2019-1st-and-3rd-Place-Solution/master/src/modeling/metric_learning.py
     """
-    def __init__(self, in_features, out_features, s=30.0, m=0.50):
+    def __init__(self, in_features, out_features, s=30.0, m=0.50, criterion="cross_entropy"):
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -119,7 +154,7 @@ class AdditiveAngularMarginLoss(torch.nn.Module):
         self.th = math.cos(math.pi - m)
         self.mm = math.sin(math.pi - m) * m
 
-        self.criterion = torch.nn.CrossEntropyLoss()
+        self.criterion = LOSS_FROM_NAME[criterion]
 
     def forward(self, features, y_true):
         """
@@ -152,6 +187,7 @@ class LargeMarginCosineLoss(torch.nn.Module):
         out_features: Number of classes
         s: Input features norm
         m: Margin value for CosFase
+        criterion: One of {'cross_entropy', 'focal', 'reduced_focal'}
 
     Reference:
         1. CosFace: Large Margin Cosine Loss for Deep Face Recognition. CVPR2018
@@ -162,7 +198,7 @@ class LargeMarginCosineLoss(torch.nn.Module):
         github.com/lyakaap/Landmark2019-1st-and-3rd-Place-Solution/master/src/modeling/metric_learning.py
     """
 
-    def __init__(self, in_features, out_features, s=30.0, m=0.40):
+    def __init__(self, in_features, out_features, s=30.0, m=0.40, criterion="cross_entropy"):
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -171,7 +207,7 @@ class LargeMarginCosineLoss(torch.nn.Module):
         self.weight = torch.nn.Parameter(torch.FloatTensor(out_features, in_features))
         torch.nn.init.xavier_uniform_(self.weight)
 
-        self.criterion = torch.nn.CrossEntropyLoss()
+        self.criterion = LOSS_FROM_NAME[criterion]
 
     def forward(self, features, y_true):
         """
@@ -199,4 +235,8 @@ LOSS_FROM_NAME = {
     "cosface": LargeMarginCosineLoss,
     "arcface_": functools.partial(AngularPenaltySMLoss, loss_type='arcface'),
     'cosface_': functools.partial(AngularPenaltySMLoss, loss_type='cosface'),
+    "focal": pt.losses.FocalLoss(mode='multiclass'),
+    "reduced_focal": pt.losses.FocalLoss(mode='multiclass', combine_thr=0.5, gamma=2.0),
+    "cross_entropy": torch.nn.CrossEntropyLoss(),
+    "normalized_ce": NormalizedCELoss,
 }
