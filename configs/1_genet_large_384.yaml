@@ -20,7 +20,7 @@ ema_decay: 0.0
 freeze_bn: false
 
 # Training
-optim: adamw
+optim: adam
 use_fp16: true
 weight_decay: 0.00001
 size: 384

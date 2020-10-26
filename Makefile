@@ -1,7 +1,3 @@
-https://digix-algo-challenge-sg.obs.ap-southeast-3.myhuaweicloud.com/2020/cv/6rKDTsB6sX8A1O2DA2IAq7TgHPdSPxJF/train_data.zip
-https://digix-algo-challenge-sg.obs.ap-southeast-3.myhuaweicloud.com/2020/cv/6rKDTsB6sX8A1O2DA2IAq7TgHPdSPxJF/test_data_A.zip
-https://digix-algo-challenge-sg.obs.ap-southeast-3.myhuaweicloud.com/2020/cv/6rKDTsB6sX8A1O2DA2IAq7TgHPdSPxJF/test_data_B.zip
-
 .PHONY: all clean load preprocess # train inference 
 
 PYTHON = python3
@@ -24,17 +20,17 @@ data/raw :load
 	rm data/raw/train_data.zip
 
 	# Test A
-	wget \
-		https://digix-algo-challenge-sg.obs.ap-southeast-3.myhuaweicloud.com/2020/cv/6rKDTsB6sX8A1O2DA2IAq7TgHPdSPxJF/test_data_A.zip \
-		-p data/raw/
-	unzip \
-		-q data/raw/test_data_A.zip\
-		-d data/raw
-	rm data/raw/test_data_A.zip	
+	# wget \
+	# 	https://digix-algo-challenge-sg.obs.ap-southeast-3.myhuaweicloud.com/2020/cv/6rKDTsB6sX8A1O2DA2IAq7TgHPdSPxJF/test_data_A.zip \
+	# 	-p data/raw/
+	# unzip \
+	# 	-q data/raw/test_data_A.zip\
+	# 	-d data/raw
+	# rm data/raw/test_data_A.zip	
 
 	# Test B
 	wget \
-		https://digix-algo-challenge-sg.obs.ap-southeast-3.myhuaweicloud.com/2020/cv/6rKDTsB6sX8A1O2DA2IAq7TgHPdSPxJF/test_data_A.zip \
+		https://digix-algo-challenge-sg.obs.ap-southeast-3.myhuaweicloud.com/2020/cv/6rKDTsB6sX8A1O2DA2IAq7TgHPdSPxJF/test_data_B.zip \
 		-p data/raw/
 	unzip \
 		-q data/raw/test_data_B.zip\
@@ -62,4 +58,4 @@ data/interim/folds.csv : src/data/preprocess.py
 # 	rm -r logs/
 # 	rm -r models/
 # 	rm -r results/
-c2 python3 predict.py -c logs/genet_small_384_light_arcface80_1 --extract_embeddings --val_size 512 --validation --test --dba --aqe
+# c2 python3 predict.py -c logs/genet_small_384_light_arcface80_1 --extract_embeddings --val_size 512 --validation --test --dba --aqe
