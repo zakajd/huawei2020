@@ -88,7 +88,7 @@ def map_at_k(perm_matrix: torch.Tensor, conformity_matrix: torch.Tensor, topk: i
         :, :R_max] * R_mask
     precision = torch.cumsum(conformity_matrix, dim=-1) * conformity_matrix \
         / torch.arange(start=1, end=R_max + 1)
-    average_precision = precision.sum(dim=-1) / conformity_matrix.sum(dim=-1)
+    average_precision = precision.sum(dim=-1) / R
 
     # If no match found at first k elements, AP is 0
     average_precision[average_precision.isnan()] = 0
